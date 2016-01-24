@@ -3,7 +3,7 @@ import struct
 import binr
 
 @binr.struct
-def uint64(ctx):
-    return struct.read('<L', ctx.read(8))
+def uint32(ctx):
+    return struct.unpack('<I', ctx.read(4))[0]
 
 
