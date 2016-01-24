@@ -1,3 +1,10 @@
+def coerce_to_source(data):
+    if isinstance(data, memoryview):
+        return MemviewSource(data)
+    if isinstance(data, bytes):
+        return MemviewSource(memoryview(data))
+    return data
+
 class MemviewSource:
     def __init__(self, mem):
         self._mem = mem
@@ -20,4 +27,3 @@ class MemviewSource:
 
     def clone(self):
         return MemviewSource(mem)
-

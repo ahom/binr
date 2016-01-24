@@ -1,4 +1,5 @@
 from binr.context import Context
+from binr.source import coerce_to_source
 
 def struct(func):
     def closure(ctx, *args,  **kwargs):
@@ -9,10 +10,10 @@ def struct(func):
     return closure
 
 def read(struct, source, *args, **kwargs):
-    ctx = Context(source) 
+    ctx = Context(coerce_to_source(source)) 
     return struct(ctx, *args, **kwargs)
 
-def trace_read(struct, source, *args, **kwargs):
-    ctx = Context(source) 
+def trace(struct, source, *args, **kwargs):
+    ctx = Context(coerce_to_source(source), True) 
     result = struct(ctx, *args, **kwargs)
-    return ctx.traces, result 
+    return ctx.trace, result 

@@ -5,7 +5,7 @@ class Context:
         self._source = source
         self._traces_enabled = traces_enabled
         self._current_trace = None
-        self.traces = [] 
+        self.trace = None 
 
     def size(self):
         return self._source.size()
@@ -31,9 +31,9 @@ class Context:
         if self._traces_enabled:
             new_trace = Trace(self._current_trace, self.pos(), func.__name__, *args, **kwargs)
             if self._current_trace is None:
-                self.traces.append(new_trace)
+                self.trace = new_trace
             else:
-                self._current_trace.children.push(new_trace)
+                self._current_trace.children.append(new_trace)
             self._current_trace = new_trace
 
     def trace_close(self, result):
