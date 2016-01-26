@@ -26,4 +26,4 @@ class MemviewSource:
         self._pos = offset
 
     def clone(self):
-        return MemviewSource(mem)
+        return MemviewSource(self._mem)
