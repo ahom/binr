@@ -27,9 +27,9 @@ class Context:
         self.seek(self.pos() + size)
         return self
 
-    def trace_open(self, func, *args, **kwargs):
+    def trace_open(self, func, name, *args, **kwargs):
         if self._traces_enabled:
-            new_trace = Trace(self._current_trace, self.pos(), func.__name__, *args, **kwargs)
+            new_trace = Trace(self._current_trace, self.pos(), name, *args, **kwargs)
             if self._current_trace is None:
                 self.trace = new_trace
             else:

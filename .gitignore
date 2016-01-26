@@ -1,2 +1,4 @@
 .cache
 **/__pycache__
+.tox
+binr.egg-info
