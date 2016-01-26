@@ -47,6 +47,6 @@ def cstring(ctx, encoding="utf-8"):
     result = bytearray()
     char = 0xFF 
     while char != 0x00:
-        char = ctx.read(1)[0]
+        char = ctx.read(1).tobytes()[0]
         result.append(char)
     return result[:-1].decode(encoding)
