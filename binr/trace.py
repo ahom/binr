@@ -6,17 +6,24 @@ class Trace:
         self.name = name
         self.args = args
         self.kwargs = kwargs
-        self.offset = offset
+        self.start_offset = offset
         self.children = []
+        self.reads = []
+        self.end_offset = None
         self.result = None
-        self.size = None
 
     def close(self, offset, result):
+        self.end_offset = offset
         self.result = result
-        self.size = offset - self.offset
+
+    def read(self, offset, size):
+        self.reads.append((offset, offset + size))
+
+    def offsets(self):
+        return chain(self.reads, *[child.offsets() for child in self.children])
 
     def __repr__(self):
-        return ('{self.name}[{self.offset}, {self.size}](' 
+        return ('[{self.start_offset}, {self.end_offset}]{self.name}(' 
             + ', '.join(
                 chain(
                     ['{}'.format(arg) for arg in self.args],

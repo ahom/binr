@@ -7,7 +7,7 @@ def struct(func):
     return closure
 
 def call_struct(ctx, func, name, *args, **kwargs):
-    ctx.trace_open(func, name, *args, **kwargs)
+    ctx.trace_open(name, *args, **kwargs)
     result = func(ctx, *args, **kwargs)
     ctx.trace_close(result)
     return result
