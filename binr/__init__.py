@@ -1,3 +1,5 @@
+import sys
+
 from binr.context import Context
 from binr.source import coerce_to_source
 
@@ -16,7 +18,15 @@ def read(struct, source, *args, **kwargs):
     ctx = Context(coerce_to_source(source)) 
     return struct(ctx, *args, **kwargs)
 
+class TraceException(Exception):
+    def __init__(self, exc, trace):
+        self.exc = exc
+        self.trace = trace
+
 def trace(struct, source, *args, **kwargs):
     ctx = Context(coerce_to_source(source), True) 
-    struct(ctx, *args, **kwargs)
+    try:
+        struct(ctx, *args, **kwargs)
+    except Exception as e:
+        raise TraceException(e, ctx.trace).with_traceback(sys.exc_info()[2])
     return ctx.trace 

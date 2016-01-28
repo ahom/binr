@@ -1,9 +1,10 @@
 from binr.trace import Trace
 
 class Context:
-    def __init__(self, source, traces_enabled=False):
+    def __init__(self, source, traces_enabled=False, offset=0):
         self._source = source
         self._traces_enabled = traces_enabled
+        self._offset = offset
         self._current_trace = None
         self.trace = None 
 
@@ -11,24 +12,26 @@ class Context:
         return self._source.size()
     
     def pos(self):
-        return self._source.pos()
+        return self._offset
     
     def read(self, size):
         self.trace_read(self.pos(), size)
-        return self._source.read(size)
+        result = self._source.read(self.pos(), size)
+        self._offset += size
+        return result
     
     def seek(self, offset):
         self.trace_open("seek", offset)
-        self._source.seek(offset)
+        self._offset = offset
         self.trace_close()
         return self
 
     def clone(self):
-        return Context(self._clone())
+        return Context(self._clone(), self._traces_enabled, self._offset)
 
     def skip(self, size):
         self.trace_open("skip", size)
-        self.seek(self.pos() + size)
+        self._offset += size
         self.trace_close()
         return self
 
