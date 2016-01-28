@@ -29,7 +29,7 @@ class Context:
     def skip(self, size):
         self.trace_open("skip", size)
         self.seek(self.pos() + size)
-        self.trace_close(None, False)
+        self.trace_close()
         return self
 
     def trace_open(self, name, *args, **kwargs):
