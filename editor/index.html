@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>binr-editor</title>
+
+    <style>
+ol.hexview {
+    border-style: none;
+    margin: 0;
+    margin-top: 1em;
+    padding: 0;
+    border-width: 0;
+    list-style-type: none;
+    font-family: monospace;
+    white-space: pre;
+    outline: 0;
+}
+
+li.hexview-row {
+    line-height: 1em;
+}
+
+span.hexview-address {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    background-color: #EEE;
+}
+span.hexview-bytes {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+}
+span.hexview-ascii {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    background-color: #EEE;
+}
+
+span.hexview-byte {
+    padding-left: 0.25em;
+    padding-right: 0.25em;
+}
+
+span.hexview-byte-hovered {
+    color: blue;
+    background-color: yellow;
+}
+span.hexview-ascii-char-hovered {
+    color: blue;
+    background-color: yellow;
+}
+
+span.hexview-byte-selected {
+    color: white;
+    background-color: black;
+}
+span.hexview-ascii-char-selected {
+    color: white;
+    background-color: black;
+}
+    </style>
+</head>
+<body>
+    <div id="app">loading...</div>
+    <script src="./lib/bundle.js"></script>
+</body>
+</html>

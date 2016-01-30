@@ -1,8 +1,17 @@
 import importlib
 import argparse
 import traceback
+import inspect
+import io
+import os
 
-from bottle import Bottle, static_file
+STATIC_FILES_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))),
+    '..',
+    'editor'
+)
+
+from bottle import Bottle, static_file, redirect
 
 import binr
 from binr.source import FileSource
@@ -14,17 +23,28 @@ class Server:
         self._source = source
         
         self.bottle.route('/trace', ['GET'], self.trace)
+        self.bottle.route('/trace/<path:path>', ['GET'], self.trace)
         self.bottle.route('/data/<offset:int>/<size:int>', ['GET'], self.data)
-        self.bottle.route('/static/<path:path>', ['GET'], self.static)
+        self.bottle.route('/<path:path>', ['GET'], self.static)
+        self.bottle.route('/', ['GET'], lambda : redirect('/index.html'))
 
     def static(self, path):
-        return static_file(path)
+        return static_file(path, root=STATIC_FILES_PATH)
 
-    def trace(self):
-        return self._trace
+    def trace(self, path=None):
+        tr = self._trace
+        if not path is None:
+            for child_id in (int(i) for i in path.strip('/').split('/')):
+                tr = tr.children[child_id]
+        return {
+            'call': tr.call_str(),
+            'caller': tr.caller_str(), 
+            'offsets': tr.offsets(),
+            'children_count': len(tr.children)
+        }
 
     def data(self, offset, size):
-        return self._source.read(offset, size)
+        return io.BytesIO(self._source.read(offset, size).tobytes())
 
     def run(self, *args, **kwargs):
         return self.bottle.run(*args, **kwargs)

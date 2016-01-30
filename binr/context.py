@@ -1,3 +1,5 @@
+import inspect
+
 from binr.trace import Trace
 
 class Context:
@@ -37,7 +39,17 @@ class Context:
 
     def trace_open(self, name, *args, **kwargs):
         if self._traces_enabled:
-            new_trace = Trace(self._current_trace, self.pos(), name, *args, **kwargs)
+            frameinfo = inspect.stack()[3]
+            new_trace = Trace(
+                self._current_trace, 
+                self.pos(), 
+                name, 
+                frameinfo.filename, 
+                frameinfo.function, 
+                frameinfo.lineno, 
+                *args, 
+                **kwargs
+            )
             if self._current_trace is None:
                 self.trace = new_trace
             else:
