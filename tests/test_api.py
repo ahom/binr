@@ -15,6 +15,18 @@ def test_basic_type():
 def nested_type(ctx):
     return t.uint32(ctx), t.uint32(ctx)
 
+@binr.struct
+def complicated_type(ctx):
+    val = nested_type(ctx)
+    ctx.skip(5)
+    val2 = nested_type(ctx)
+    val3 = t.uint64(ctx)
+    return {
+        'val': val,
+        'val2': val2,
+        'val3': val3,
+    }
+
 def test_nested_type():
     assert binr.read(nested_type, b'\x01\x00\x00\x00\x02\x00\x00\x00') == (1, 2)
     trace = binr.trace(nested_type, b'\x01\x00\x00\x00\x02\x00\x00\x00')

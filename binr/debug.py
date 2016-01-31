@@ -22,8 +22,9 @@ class Server:
         self._trace = trace
         self._source = source
         
-        self.bottle.route('/trace', ['GET'], self.trace)
+        self.bottle.route('/trace/', ['GET'], self.trace)
         self.bottle.route('/trace/<path:path>', ['GET'], self.trace)
+        self.bottle.route('/data/infos', ['GET'], self.data_infos)
         self.bottle.route('/data/<offset:int>/<size:int>', ['GET'], self.data)
         self.bottle.route('/<path:path>', ['GET'], self.static)
         self.bottle.route('/', ['GET'], lambda : redirect('/index.html'))
@@ -33,14 +34,23 @@ class Server:
 
     def trace(self, path=None):
         tr = self._trace
+        trace_path = []
         if not path is None:
-            for child_id in (int(i) for i in path.strip('/').split('/')):
+            trace_path = [int(i) for i in path.strip('/').split('/')]
+            for child_id in trace_path:
                 tr = tr.children[child_id]
         return {
+            'path': trace_path,
             'call': tr.call_str(),
             'caller': tr.caller_str(), 
             'offsets': tr.offsets(),
+            'result': str(tr.result),
             'children_count': len(tr.children)
+        }
+
+    def data_infos(self):
+        return {
+            'size': self._source.size()
         }
 
     def data(self, offset, size):

@@ -2,3 +2,5 @@
 **/__pycache__
 .tox
 binr.egg-info
+editor/lib
+editor/node_modules

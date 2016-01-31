@@ -1,26 +1,53 @@
 import React from 'react';
+import update from 'react-addons-update';
 
-import FileOpener from './file_opener';
 import HexView from './hexview';
-
-import FileBuffer from './file_buffer';
+import TraceView from './traceview';
+import SourceStore from './source_store';
+import TraceStore from './trace_store';
+import {throttle} from './utils';
 
 export default class App extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            buffer: new FileBuffer(null)
+            source: {
+                buffer: null,
+                infos: null,
+                selection: null
+            },
+            trace: {
+                root: null,
+                selection: null
+            }
         };
+        this.source_store = new SourceStore();
+        this.trace_store = new TraceStore();
     }
-    onFileChange(file) {
-        this.setState({
-            buffer: new FileBuffer(file)
+    componentDidMount() {
+        this.source_store.fetch_infos().then((val) => {
+            this.setState(update(this.state, { source: { infos: { $set: val }}}));
         });
+        this.trace_store.fetch_root().then((val) => {
+            this.setState(update(this.state, { trace: { root: { $set: val }}}));
+        });
+    }
+    fetch_data(start) {
+        this.source_store.read(start).then((res) => this.setState(update(this.state, { source: { buffer: { $set: res }}})));
+    }
+    fetch_trace(path) {
+        this.trace_store.fetch(path).then(() => this.setState(update(this.state, { trace: { root: { $set: this.trace_store.root }}})));
     }
     render() {
         return <div>
-            <FileOpener onChange={this.onFileChange.bind(this)}/>
-            <HexView buffer={this.state.buffer}/>
+            <HexView 
+                source={this.state.source}
+                fetch_data={throttle(this.fetch_data.bind(this), 1000)}
+            />
+            <TraceView 
+                trace={this.state.trace.root} 
+                fetch_trace={this.fetch_trace.bind(this)}
+            />
         </div>;
     }
 }

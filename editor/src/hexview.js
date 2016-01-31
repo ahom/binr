@@ -5,44 +5,34 @@ export default class HexView extends React.Component {
         super(props);
         this.state = {
             currentRow: 0,
-            loading: true,
             selected: 0
         };
-        this.fetchData();
     }
     last_row() {
-        return Math.floor(this.props.buffer.size() / this.props.bytesPerRow);
+        return Math.floor(this.props.source.infos.size / this.props.bytesPerRow);
     }
-    componentWillReceiveProps(newProps) {
-        if (newProps.buffer !== this.props.buffer) {
-            this.setState({
-                currentRow: 0
-            });
-            this.fetchData(0, newProps);
+    componentDidMount() {
+        this.props.fetch_data(0);
+    }
+    need_fetch(start) {
+        return this.props.source.buffer 
+            && (start < this.props.source.buffer.start
+                || start + this.props.visibleRows * this.props.bytesPerRow > this.props.source.buffer.start + this.props.source.buffer.size);
+    }
+    fetch_data(start) {
+        if (this.need_fetch(start)) {
+            this.props.fetch_data(start);
         }
-    }
-    fetchData(row, props) {
-        row = row === undefined ? this.state.currentRow : row;
-        props = props === undefined ? this.props : props;
-        props.buffer.read_async(
-            row * props.bytesPerRow, 
-            props.visibleRows * props.bytesPerRow,
-            (data) => {
-                this.setState({
-                    loading: false
-                });
-        });
-        props.buffer.warmup_neighbors(row * props.bytesPerRow);
     }
     onWheel(e) {
         let new_row = this.state.currentRow + Math.round(e.deltaY / 10.0);
         if (new_row < 0) {
             new_row = 0;
         }
-        this.fetchData(new_row);
         this.setState({
             currentRow: new_row
         });
+        this.fetch_data(new_row * this.props.bytesPerRow);
     }
     onMouseDown(offset, e) {
         this.setState({
@@ -50,7 +40,6 @@ export default class HexView extends React.Component {
         });
     }
     onKeyDown(e) {
-        console.log(e.keyCode);
         let delta_row = 0;
         let delta_col = 0;
         switch (e.keyCode) {
@@ -100,12 +89,19 @@ export default class HexView extends React.Component {
             currentRow: current_row,
             selected: selected_row * this.props.bytesPerRow + selected_col
         });
-        this.fetchData(current_row);
+        this.fetch_data(current_row * this.props.bytesPerRow);
     }
     render() {
         let rows = [];
         let address_size = ((this.state.currentRow + this.props.visibleRows) * this.props.bytesPerRow).toString(16).length;
-        let data = this.props.buffer.read(this.state.currentRow * this.props.bytesPerRow, this.props.visibleRows * this.props.bytesPerRow);
+        let data = new Uint8Array();
+        let start = this.state.currentRow * this.props.bytesPerRow;
+        if (!this.need_fetch(start) && this.props.source.buffer) {
+            data = this.props.source.buffer.data.subarray(
+                start - this.props.source.buffer.start,
+                start - this.props.source.buffer.start + this.props.visibleRows * this.props.bytesPerRow
+            );
+        }
         for (let idx = 0; idx < this.props.visibleRows; idx++) { 
             rows.push(
                 <HexRow
@@ -131,15 +127,11 @@ export default class HexView extends React.Component {
 
 HexView.propTypes = {
     bytesPerRow: React.PropTypes.number,
-    visibleRows: React.PropTypes.number,
-    pageSize: React.PropTypes.number,
-    cachePageCount: React.PropTypes.number
+    visibleRows: React.PropTypes.number
 };
 HexView.defaultProps = {
     bytesPerRow: 16,
-    visibleRows: 50,
-    pageSize: 4096,
-    cachePageCount: 10
+    visibleRows: 50
 };
 
 class HexRow extends React.Component {

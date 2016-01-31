@@ -60,7 +60,7 @@ class Context:
         if self._traces_enabled:
             self._current_trace.read(offset, size)
 
-    def trace_close(self, result):
+    def trace_close(self, result=None):
         if self._traces_enabled:
             self._current_trace.close(self.pos(), result)
             self._current_trace = self._current_trace.parent
