@@ -23,17 +23,20 @@ export default class TraceView extends React.Component {
         }
     }
     render() {
+        if (!this.props.current_trace) {
+            return <span className="traceview">{"Loading..."}</span>
+        }
+        let folded_sign = this.props.current_trace.children_count > 0 ? (this.state.expanded ? "- " : "+ ") : "";
         return <div>
             <span 
-                    className={this.props.current_trace === this.props.trace.selection ? "traceview-selected" : ""}
+                    className={"traceview"
+                        + (this.props.current_trace === this.props.trace.selection ? " traceview-selected" : "")}
                     onClick={this.onClick.bind(this)} 
                     onDoubleClick={this.onDoubleClick.bind(this)}>
-                {this.props.current_trace ? this.props.current_trace.call : "Loading..."}
+                {folded_sign + this.props.current_trace.call}
             </span>
-            {this.state.expanded 
-                && this.props.current_trace 
-                    && this.props.current_trace.children ? <ol>
-                {this.props.current_trace.children.map((tr) => <li>
+            {this.state.expanded && this.props.current_trace.children ? <ol className="traceview-node">
+                {this.props.current_trace.children.map((tr, idx) => <li key={idx}>
                         <TraceView 
                             trace={this.props.trace}
                             current_trace={tr}

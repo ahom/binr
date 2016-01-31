@@ -102,12 +102,17 @@ export default class HexView extends React.Component {
                 start - this.props.source.buffer.start + this.props.visibleRows * this.props.bytesPerRow
             );
         }
+        let marked = [];
+        if (this.props.selected_trace) {
+            marked = this.props.selected_trace.offsets.filter((range) => range[1] > start && range[0] < start + this.props.visibleRows * this.props.bytesPerRow).map((range) => [range[0] - start, range[1] - start]);
+        }
         for (let idx = 0; idx < this.props.visibleRows; idx++) { 
             rows.push(
                 <HexRow
                         key={idx}
                         data={data ? data.subarray(idx * this.props.bytesPerRow, (idx + 1) * this.props.bytesPerRow) : new Uint8Array()}
                         row={this.state.currentRow + idx}
+                        marked={marked.filter((range) => range[1] > idx * this.props.bytesPerRow && range[0] < (idx+1) * this.props.bytesPerRow).map((range) => [range[0] - idx * this.props.bytesPerRow, range[1] - idx * this.props.bytesPerRow])}
                         bytesPerRow={this.props.bytesPerRow}
                         address_size={address_size} 
                         selected={this.state.selected}
@@ -173,6 +178,7 @@ class HexRow extends React.Component {
                 bytesPerRow={this.props.bytesPerRow} 
                 hovered={this.state.hovered}
                 selected={selected}
+                marked={this.props.marked}
                 onMouseEnterCallback={this.onMouseEnter.bind(this)}
                 onMouseLeaveCallback={this.onMouseLeave.bind(this)}
                 onMouseDownCallback={this.onMouseDown.bind(this)}
@@ -182,6 +188,7 @@ class HexRow extends React.Component {
                 bytesPerRow={this.props.bytesPerRow} 
                 hovered={this.state.hovered}
                 selected={selected}
+                marked={this.props.marked}
                 onMouseEnterCallback={this.onMouseEnter.bind(this)}
                 onMouseLeaveCallback={this.onMouseLeave.bind(this)}
                 onMouseDownCallback={this.onMouseDown.bind(this)}
@@ -217,12 +224,14 @@ class HexBytes extends React.Component {
     render() {
         let values = [];
         for (let idx = 0; idx < this.props.bytesPerRow; idx++) {
+            let marked = this.props.marked.some((range) => range[0] <= idx && range[1] > idx); 
             values.push(
                 <span 
                         key={idx} 
                         className={"hexview-byte" 
                             + (this.props.hovered == idx ? " hexview-byte-hovered": "")
-                            + (this.props.selected == idx ? " hexview-byte-selected": "")}
+                            + (this.props.selected == idx ? " hexview-byte-selected": "")
+                            + (marked ? " hexview-byte-marked": "")}
                         onMouseEnter={(ev) => this.props.onMouseEnterCallback(idx, ev)}
                         onMouseLeave={(ev) => this.props.onMouseLeaveCallback(idx, ev)}
                         onMouseDown={(ev) => this.props.onMouseDownCallback(idx, ev)}>
@@ -247,12 +256,14 @@ class HexAscii extends React.Component {
         let values = [];
         for (let idx = 0; idx < this.props.bytesPerRow; idx++) {
             let val = idx < this.props.data.length ? this.props.data[idx] : 0x20; // space
+            let marked = this.props.marked.some((range) => range[0] <= idx && range[1] > idx); 
             values.push(
                 <span 
                         key={idx} 
                         className={"hexview-ascii-char" 
                             + (this.props.hovered === idx ? " hexview-ascii-char-hovered": "")
-                            + (this.props.selected === idx ? " hexview-ascii-char-selected": "")}
+                            + (this.props.selected === idx ? " hexview-ascii-char-selected": "")
+                            + (marked ? " hexview-ascii-char-marked": "")}
                         onMouseEnter={(ev) => this.props.onMouseEnterCallback(idx, ev)}
                         onMouseLeave={(ev) => this.props.onMouseLeaveCallback(idx, ev)}
                         onMouseDown={(ev) => this.props.onMouseDownCallback(idx, ev)}>
