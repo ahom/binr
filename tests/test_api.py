@@ -35,7 +35,7 @@ def test_nested_type():
     assert trace.name == "nested_type"
     assert trace.start_offset == 0
     assert trace.end_offset == 8
-    assert list(trace.offsets()) == [(0, 4), (4, 8)]
+    assert list(trace.offsets()) == [(0, 8)]
     assert trace.result == (1, 2)
     assert len(trace.children) == 2
 

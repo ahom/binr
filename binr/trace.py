@@ -41,7 +41,7 @@ class Trace:
                 offsets.insert(insertion_point, offset)
             else:
                 offsets = offsets[:start] \
-                    + [[min(offset[0], offsets[start][0]), max(offset[1], offsets[end][1])]] \
+                    + [(min(offset[0], offsets[start][0]), max(offset[1], offsets[end][1]))] \
                     + offsets[end+1:]
         return offsets
 
