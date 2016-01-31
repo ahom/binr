@@ -24,6 +24,7 @@ class Server:
         
         self.bottle.route('/trace/', ['GET'], self.trace)
         self.bottle.route('/trace/<path:path>', ['GET'], self.trace)
+        self.bottle.route('/file/<path:path>', ['GET'], self.file)
         self.bottle.route('/data/infos', ['GET'], self.data_infos)
         self.bottle.route('/data/<offset:int>/<size:int>', ['GET'], self.data)
         self.bottle.route('/<path:path>', ['GET'], self.static)
@@ -42,11 +43,16 @@ class Server:
         return {
             'path': trace_path,
             'call': tr.call_str(),
-            'caller': tr.caller_str(), 
+            'filename': tr.filename,
+            'func': tr.func,
+            'lineno': tr.lineno,
             'offsets': tr.offsets(),
             'result': str(tr.result),
             'children_count': len(tr.children)
         }
+
+    def file(self, path):
+        return open(path, 'rb')
 
     def data_infos(self):
         return {

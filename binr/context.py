@@ -23,7 +23,7 @@ class Context:
         return result
     
     def seek(self, offset):
-        self.trace_open("seek", offset)
+        self.trace_open("seek", 2, offset)
         self._offset = offset
         self.trace_close()
         return self
@@ -32,14 +32,14 @@ class Context:
         return Context(self._clone(), self._traces_enabled, self._offset)
 
     def skip(self, size):
-        self.trace_open("skip", size)
+        self.trace_open("skip", 2, size)
         self._offset += size
         self.trace_close()
         return self
 
-    def trace_open(self, name, *args, **kwargs):
+    def trace_open(self, name, nest_lvl, *args, **kwargs):
         if self._traces_enabled:
-            frameinfo = inspect.stack()[3]
+            frameinfo = inspect.stack()[nest_lvl]
             new_trace = Trace(
                 self._current_trace, 
                 self.pos(), 

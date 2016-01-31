@@ -45,9 +45,6 @@ class Trace:
                     + offsets[end+1:]
         return offsets
 
-    def caller_str(self):
-        return '{self.filename}:{self.func}:{self.lineno}'.format(self=self)
-
     def call_str(self):
         return ('{self.name}(' 
             + ', '.join(

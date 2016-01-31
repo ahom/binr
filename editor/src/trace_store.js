@@ -1,6 +1,7 @@
 export default class Trace {
     constructor() {
         this.root = null;
+        this.file_map = {};
     }
 
     fetch_root() {
@@ -22,7 +23,20 @@ export default class Trace {
                     }
                     current.children[path[path.length - 1]] = res;
                 }
-                resolve(res);
+                if (this.file_map[res.filename] !== undefined) {
+                    res.file = this.file_map[res.filename];
+                    resolve(res);
+                } else {
+                    res.file = {
+                        name: res.filename,
+                        lines: null
+                    };
+                    this.file_map[res.filename] = res.file;
+                    window.fetch(`/file/${res.filename}`).then((file_res) => file_res.text()).then((file_res) => {
+                        res.file.lines = file_res.split('\n');
+                    });
+                    resolve(res);
+                }
             });
         });
     }
