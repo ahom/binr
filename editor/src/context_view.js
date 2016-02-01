@@ -6,12 +6,12 @@ export default class ContextView extends React.Component {
         super(props);
     }
     render() {
-        let selection = this.props.trace
-            && this.props.trace.selection;
+        let selection = this.props.trace;
         return <div>
             {selection
                     && selection.file 
                     && selection.file.lines ? <div>
+                <Highlight className="javascript">{selection.result}</Highlight>
                 <Highlight className="python">{selection.file.lines.slice(selection.lineno - 3, selection.lineno - 1).join('\n')}</Highlight>
                 <Highlight className="python">{selection.file.lines[selection.lineno - 1]}</Highlight>
                 <Highlight className="python">{selection.file.lines.slice(selection.lineno, selection.lineno + 2).join('\n')}</Highlight>

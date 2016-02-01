@@ -58,7 +58,7 @@ export default class App extends React.Component {
                 select_trace={this.select_trace.bind(this)}
             />
             <ContextView 
-                trace={this.state.trace} 
+                trace={this.state.trace.selection} 
             />
         </div>;
     }

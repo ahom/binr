@@ -4,6 +4,7 @@ import traceback
 import inspect
 import io
 import os
+import json
 
 STATIC_FILES_PATH = os.path.join(
     os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))),
@@ -15,6 +16,16 @@ from bottle import Bottle, static_file, redirect
 
 import binr
 from binr.source import FileSource
+
+class DebugJsonEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, tuple) and hasattr(o, '_asdict'): # for namedtuple
+            return o._asdict()
+        else:
+            try:
+                return super().default(o)
+            except Exception as e:
+                return str(o) # for all the rest, cast to str
 
 class Server:
     def __init__(self, trace, source):
@@ -47,7 +58,7 @@ class Server:
             'func': tr.func,
             'lineno': tr.lineno,
             'offsets': tr.offsets(),
-            'result': str(tr.result),
+            'result': json.dumps(tr.result, indent=4, cls=DebugJsonEncoder),
             'children_count': len(tr.children)
         }
 
