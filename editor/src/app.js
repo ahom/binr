@@ -45,18 +45,22 @@ export default class App extends React.Component {
         this.setState(update(this.state, { trace: { selection: { $set: trace }}}));
     }
     render() {
-        return <div>
-            <HexView 
-                selected_trace={this.state.trace.selection}
-                source={this.state.source}
-                fetch_data={throttle(this.fetch_data.bind(this), 1000)}
-            />
-            <TraceView 
-                trace={this.state.trace} 
-                current_trace={this.state.trace.root}
-                fetch_trace={this.fetch_trace.bind(this)}
-                select_trace={this.select_trace.bind(this)}
-            />
+        return <div className="app-container">
+            <div className="hex-trace-container">
+                <HexView 
+                    selected_trace={this.state.trace.selection}
+                    source={this.state.source}
+                    fetch_data={throttle(this.fetch_data.bind(this), 1000)}
+                />
+                <div className="trace-container">
+                    <TraceView 
+                        trace={this.state.trace} 
+                        current_trace={this.state.trace.root}
+                        fetch_trace={this.fetch_trace.bind(this)}
+                        select_trace={this.select_trace.bind(this)}
+                    />
+                </div>
+            </div>
             <ContextView 
                 trace={this.state.trace.selection} 
             />

@@ -120,7 +120,7 @@ export default class HexView extends React.Component {
                 />
             );
         }
-        return <ol 
+        return <ol
                 className="hexview"
                 tabIndex="1"
                 onWheel={this.onWheel.bind(this)}

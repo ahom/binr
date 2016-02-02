@@ -6,26 +6,85 @@
     <link rel="stylesheet" type="text/css" href="./node_modules/highlight.js/styles/tomorrow-night.css" /> 
 
     <style>
+
+html, body, div#app {
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+    font-family: monospace;
+    white-space: pre;
+    width: 100%;
+    height: 100%;
+    background-color: #1d1f21;
+    color: #c5c8c6;
+}
+
+pre {
+    margin: 0;
+}
+
+div.app-container {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+div.hex-trace-container {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+}
+
+div.hex-container {
+    width: 50%;
+}
+div.trace-container {
+    width: 50%;
+}
+
+div.context-container {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+}
+
+div.context-result-container {
+    width: 50%;
+}
+div.context-file-container {
+    width: 50%;
+}
+
+div.context-line-container {
+    border: 1px solid firebrick;
+}
+
 ol.hexview {
     border-style: none;
     margin: 0;
-    margin-top: 1em;
     padding: 0;
     border-width: 0;
     list-style-type: none;
-    font-family: monospace;
-    white-space: pre;
     outline: 0;
+    width: 50%;
 }
 
 li.hexview-row {
     line-height: 1em;
+    float: right;
 }
 
 span.hexview-address {
     padding-left: 0.5em;
     padding-right: 0.5em;
-    background-color: #EEE;
+    background-color: #282a2e;
 }
 span.hexview-bytes {
     padding-left: 0.5em;
@@ -34,7 +93,7 @@ span.hexview-bytes {
 span.hexview-ascii {
     padding-left: 0.5em;
     padding-right: 0.5em;
-    background-color: #EEE;
+    background-color: #282a2e;
 }
 
 span.hexview-byte {
@@ -43,30 +102,30 @@ span.hexview-byte {
 }
 
 span.hexview-byte-hovered {
-    color: blue;
-    background-color: yellow;
+    color: #1d1f21;
+    background-color: #c3ff00;
 }
 span.hexview-ascii-char-hovered {
-    color: blue;
-    background-color: yellow;
+    color: #1d1f21;
+    background-color: #c3ff00;
 }
 
 span.hexview-byte-selected {
     color: white;
-    background-color: black;
+    background-color: #de935f;
 }
 span.hexview-ascii-char-selected {
     color: white;
-    background-color: black;
+    background-color: #de935f;
 }
 
 span.hexview-byte-marked {
     color: white;
-    background-color: blue;
+    background-color: #5f819d;
 }
 span.hexview-ascii-char-marked {
     color: white;
-    background-color: blue;
+    background-color: #5f819d;
 }
 
 ol.traceview-node {
@@ -76,13 +135,7 @@ ol.traceview-node {
 
 span.traceview-selected {
     color: white;
-    background-color: black;
-}
-
-span.traceview {
-    font-family: monospace;
-}
-
+    background-color: #5f819d;
     </style>
 </head>
 <body>
