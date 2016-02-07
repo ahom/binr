@@ -1,0 +1,66 @@
+html, body {
+    font-family: monospace;
+    white-space: pre;
+    background-color: #1d1f21;
+    color: #c5c8c6;
+}
+
+ol.hexview {
+    border-style: none;
+    margin: 0;
+    padding: 0;
+    border-width: 0;
+    list-style-type: none;
+    outline: 0;
+}
+
+li.hexview-row {
+    line-height: 1em;
+}
+
+span.hexview-address {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    background-color: #282a2e;
+}
+span.hexview-bytes {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+}
+span.hexview-ascii {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    background-color: #282a2e;
+}
+
+span.hexview-byte {
+    padding-left: 0.25em;
+    padding-right: 0.25em;
+}
+
+span.hexview-byte-hovered {
+    color: #1d1f21;
+    background-color: #c3ff00;
+}
+span.hexview-ascii-char-hovered {
+    color: #1d1f21;
+    background-color: #c3ff00;
+}
+
+span.hexview-byte-cursor {
+    color: white;
+    background-color: #de935f;
+}
+span.hexview-ascii-char-cursor {
+    color: white;
+    background-color: #de935f;
+}
+
+span.hexview-byte-marked {
+    color: white;
+    background-color: #5f819d;
+}
+span.hexview-ascii-char-marked {
+    color: white;
+    background-color: #5f819d;
+}
