@@ -26,14 +26,16 @@ export default class InspectorView extends React.Component {
         return <table
                 className="inspectorview">
             <thead>
-                <td>Type</td>
-                <td>le</td>
-                <td>be</td>
+                <tr>
+                    <td>Type</td>
+                    <td>le</td>
+                    <td>be</td>
+                </tr>
             </thead>
             <tbody>
-                {data && types.map((values) => {
+                {data && types.map((values, idx) => {
                     const [name, func] = values;
-                    return <tr>
+                    return <tr key={idx}>
                         <td className="inspector-name">{name}</td>
                         <td className="inspector-value">{dview[func](0, true)}</td>
                         <td className="inspector-value">{dview[func](0, false)}</td>

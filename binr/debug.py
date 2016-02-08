@@ -17,25 +17,13 @@ from bottle import Bottle, static_file, redirect
 import binr
 from binr.source import FileSource
 
-class DebugJsonEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, tuple) and hasattr(o, '_asdict'): # for namedtuple
-            return o._asdict()
-        else:
-            try:
-                return super().default(o)
-            except Exception as e:
-                return str(o) # for all the rest, cast to str
-
 class Server:
     def __init__(self, trace, source):
         self.bottle = Bottle()
         self._trace = trace
         self._source = source
         
-        self.bottle.route('/trace/', ['GET'], self.trace)
-        self.bottle.route('/trace/<path:path>', ['GET'], self.trace)
-        self.bottle.route('/file/<path:path>', ['GET'], self.file)
+        self.bottle.route('/trace', ['GET'], self.trace)
         self.bottle.route('/data/infos', ['GET'], self.data_infos)
         self.bottle.route('/data/<offset:int>/<size:int>', ['GET'], self.data)
         self.bottle.route('/<path:path>', ['GET'], self.static)
@@ -45,25 +33,7 @@ class Server:
         return static_file(path, root=STATIC_FILES_PATH)
 
     def trace(self, path=None):
-        tr = self._trace
-        trace_path = []
-        if not path is None:
-            trace_path = [int(i) for i in path.strip('/').split('/')]
-            for child_id in trace_path:
-                tr = tr.children[child_id]
-        return {
-            'path': trace_path,
-            'call': tr.call_str(),
-            'filename': tr.filename,
-            'func': tr.func,
-            'lineno': tr.lineno,
-            'offsets': tr.offsets(),
-            'result': json.dumps(tr.result, indent=4, cls=DebugJsonEncoder),
-            'children_count': len(tr.children)
-        }
-
-    def file(self, path):
-        return open(path, 'rb')
+        return self._trace.to_dict()
 
     def data_infos(self):
         return {

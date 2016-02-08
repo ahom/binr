@@ -2,11 +2,12 @@ import {combineReducers} from 'redux';
 import {
     HEX_VIEW_ROW_SET, HEX_CURSOR_POS_SET,
     HEX_DATA_FETCH_START, HEX_DATA_FETCH_END,
-    METADATA_FETCH_START, METADATA_FETCH_END
+    METADATA_FETCH_START, METADATA_FETCH_END,
+    TRACE_SET_ACTIVE, TRACE_FETCH_START, TRACE_FETCH_END
 } from './actions';
 import update from 'react-addons-update';
 
-function metadataReducer(state = {
+function metadata_reducer(state = {
     is_fetching: false,
     data: null
 }, action) {
@@ -23,7 +24,7 @@ function metadataReducer(state = {
     }
 }
 
-function hexReducer(state = {
+function hex_reducer(state = {
     fetch: {
         ongoing: false
     },
@@ -73,18 +74,30 @@ function hexReducer(state = {
     }
 }
 
-function traceReducer(state = {
+function trace_reducer(state = {
     is_fetching: false,
     root: null,
     active_trace: []
 }, action) {
-    return state;
+    switch (action.type) {
+        case TRACE_SET_ACTIVE:
+            return update(state, {active_trace: {$set: action.path}});
+        case TRACE_FETCH_START:
+            return update(state, {is_fetching: {$set: true}});
+        case TRACE_FETCH_END:
+            return update(state, {
+                is_fetching: {$set: false},
+                root: {$set: action.data}
+            });
+        default:
+            return state;
+    }
 }
 
-const rootReducer = combineReducers({
-    metadata: metadataReducer,
-    hex: hexReducer,
-    trace: traceReducer
+const root_reducer = combineReducers({
+    metadata: metadata_reducer,
+    hex: hex_reducer,
+    trace: trace_reducer
 })
 
-export default rootReducer
+export default root_reducer

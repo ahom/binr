@@ -1,6 +1,15 @@
-import bisect
-
+import json
 from itertools import chain
+
+class DebugJsonEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, tuple) and hasattr(o, '_asdict'): # for namedtuple
+            return o._asdict()
+        else:
+            try:
+                return super().default(o)
+            except Exception as e:
+                return str(o) # for all the rest, cast to str
 
 class Trace:
     def __init__(self, parent, offset, name, filename, func, lineno, *args, **kwargs):
@@ -55,3 +64,13 @@ class Trace:
             ) + ')'
         ).format(self=self)
 
+    def to_dict(self):
+        return {
+            'call': self.call_str(),
+            'filename': self.filename,
+            'func': self.func,
+            'lineno': self.lineno,
+            'offsets': self.offsets(),
+            'result': json.dumps(self.result, indent=4, cls=DebugJsonEncoder),
+            'children': list(map(lambda t: t.to_dict(), self.children))
+        }
