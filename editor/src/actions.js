@@ -4,7 +4,8 @@ const PAGE_SIZE = 4096;
 const PAGE_BOUNDARY = 2048;
 
 export const HEX_VIEW_ROW_SET = 'HEX_VIEW_ROW_SET';
-export const HEX_CURSOR_POS_SET = 'HEX_CURSOR_POS_SET';
+export const HEX_MARKED_SET = 'HEX_MARKED_SET';
+export const HEX_CURSOR_SET = 'HEX_CURSOR_SET';
 
 export const HEX_DATA_FETCH_START = 'HEX_DATA_FETCH_START';
 export const HEX_DATA_FETCH_END = 'HEX_DATA_FETCH_END';
@@ -17,7 +18,7 @@ export const TRACE_SET_ACTIVE = 'TRACE_SET_ACTIVE';
 export const TRACE_FETCH_START = 'TRACE_FETCH_START';
 export const TRACE_FETCH_END = 'TRACE_FETCH_END';
 
-export function hex_cursor_pos_set(pos) {
+export function hex_cursor_set(pos) {
     return (dispatch, getState) => {
         const state = getState();
         let new_pos = Math.max(
@@ -30,9 +31,9 @@ export function hex_cursor_pos_set(pos) {
                 new_pos
             );
         }
-        if (new_pos !== state.hex.cursor_pos) {
+        if (new_pos !== state.hex.cursor) {
             dispatch({
-                type: HEX_CURSOR_POS_SET,
+                type: HEX_CURSOR_SET,
                 pos: new_pos
             });
             const {row, bytes_per_row, rows_per_page} = state.hex.view;
@@ -44,6 +45,13 @@ export function hex_cursor_pos_set(pos) {
             }
         }
     };
+}
+
+export function hex_marked_set(marked) {
+    return {
+        type: HEX_MARKED_SET,
+        marked: marked
+    }
 }
 
 export function hex_view_row_set(row) {
@@ -63,7 +71,8 @@ export function hex_view_row_set(row) {
             dispatch({
                 type: HEX_VIEW_ROW_SET,
                 row: new_row
-            });
+            })
+            dispatch(fetch_hex_data_if_needed());
         }
     };
 }
@@ -122,7 +131,7 @@ function receive_metadata(json) {
     };
 }
 
-function fetch_metadata() {
+export function fetch_metadata() {
     return dispatch => {
         dispatch({
             type: METADATA_FETCH_START
@@ -131,15 +140,6 @@ function fetch_metadata() {
             .then(req => req.json())
             .then(json => dispatch(receive_metadata(json)));
     }
-}
-
-export function fetch_metadata_if_needed() {
-    return (dispatch, getState) => {
-        const metadata = getState().metadata;
-        if (!metadata.is_loading && metadata.data === null) {
-            return dispatch(fetch_metadata())
-        }
-    };
 }
 
 export function trace_set_active(path) {
@@ -156,7 +156,7 @@ function receive_trace(json) {
     };
 }
 
-function fetch_trace() {
+export function fetch_trace() {
     return dispatch => {
         dispatch({
             type: TRACE_FETCH_START
@@ -165,13 +165,4 @@ function fetch_trace() {
             .then(req => req.json())
             .then(json => dispatch(receive_trace(json)));
     }
-}
-
-export function fetch_trace_if_needed() {
-    return (dispatch, getState) => {
-        const trace = getState().trace;
-        if (!trace.is_fetching && trace.root === null) {
-            return dispatch(fetch_trace())
-        }
-    };
 }

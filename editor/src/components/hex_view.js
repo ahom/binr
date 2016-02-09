@@ -19,15 +19,6 @@ export default class HexView extends React.Component {
     constructor(props: Props) {
         super(props);
     }
-    componentDidMount() {
-        this.props.fetch_metadata_if_needed();
-        this.props.fetch_hex_data_if_needed();
-    }
-    componentWillReceiveProps(next_props) {
-        if (this.props.view !== next_props.view) {
-            this.props.fetch_hex_data_if_needed();
-        }
-    }
     onWheel(e) {
         this.props.set_view_row(this.props.view.row + Math.floor(e.deltaY / 10.0));
     }
@@ -52,37 +43,47 @@ export default class HexView extends React.Component {
             case 34: // pagedown
                 delta_bytes += this.props.view.bytes_per_row * this.props.view.rows_per_page;
         }
-        this.props.set_cursor_pos(this.props.cursor_pos + delta_bytes);
+        this.props.set_cursor(this.props.cursor + delta_bytes);
     }
     onMouseDown(e) {
         let offset = get_offset(e);
         if (offset !== null) {
-            this.props.set_cursor_pos(offset);
+            this.props.set_cursor(offset);
         }
     }
     render() {
-        const {view, data, cursor_pos} = this.props;
+        const {view, data, cursor, marked} = this.props;
         let rows = [];
         let address_size = ((view.row + view.rows_per_page) * view.bytes_per_row).toString(16).length;
         let bytes = new Uint8Array();
+        let page_marked = [];
         if (data) {
             let start = view.row * view.bytes_per_row;
             let end = start + view.rows_per_page * view.bytes_per_row;
             if (data.start <= start && data.end >= end) {
                 bytes = data.bytes.subarray(start - data.start, end - data.start);
             }
+            page_marked = marked
+                .filter((mark) => start < mark[1] && end > mark[0])
+                .map((mark) => [mark[0] - start, mark[1] - start]);
         }
-        let cursor_row = Math.floor(cursor_pos / view.bytes_per_row);
+        let cursor_row = Math.floor(cursor / view.bytes_per_row);
         for (let idx = 0; idx < view.rows_per_page; idx++) { 
-            let cursor_col = (cursor_row === view.row + idx) ? cursor_pos % view.bytes_per_row : null;
+            let cursor_col = (cursor_row === view.row + idx) ? cursor % view.bytes_per_row : null;
+            let start = idx * view.bytes_per_row;
+            let end = (idx + 1) * view.bytes_per_row;
+            let row_marked = page_marked
+                .filter((mark) => start < mark[1] && end > mark[0])
+                .map((mark) => [mark[0] - start, mark[1] - start]);
             rows.push(
                 <HexRow
                         key={idx}
-                        bytes={bytes.subarray(idx * view.bytes_per_row, (idx + 1) * view.bytes_per_row)}
-                        offset={(view.row + idx) * view.bytes_per_row}
+                        bytes={bytes.subarray(start, end)}
+                        offset={start + view.row * view.bytes_per_row}
                         bytes_per_row={view.bytes_per_row}
                         address_size={address_size} 
-                        cursor_pos={cursor_col}
+                        cursor={cursor_col}
+                        marked={row_marked}
                 />
             );
         }
@@ -136,14 +137,16 @@ class HexRow extends React.Component {
                 bytes_per_row={this.props.bytes_per_row} 
                 offset={this.props.offset}
                 hovered={this.state.hovered}
-                cursor_pos={this.props.cursor_pos}
+                cursor={this.props.cursor}
+                marked={this.props.marked}
             />
             <HexAscii 
                 bytes={this.props.bytes} 
                 bytes_per_row={this.props.bytes_per_row} 
                 offset={this.props.offset}
                 hovered={this.state.hovered}
-                cursor_pos={this.props.cursor_pos}
+                cursor={this.props.cursor}
+                marked={this.props.marked}
             />
         </li>
     }
@@ -169,7 +172,8 @@ class HexBytes extends React.Component {
         for (let idx = 0; idx < this.props.bytes_per_row; idx++) {
             let cls = classNames({
                 'hexview-byte': true,
-                'hexview-byte-cursor': this.props.cursor_pos === idx,
+                'hexview-byte-marked': this.props.marked.some((mark) => idx >= mark[0] && idx < mark[1]),
+                'hexview-byte-cursor': this.props.cursor === idx,
                 'hexview-byte-hovered': this.props.hovered === idx
             });
             values.push(
@@ -195,7 +199,8 @@ class HexAscii extends React.Component {
             let val = idx < this.props.bytes.length ? this.props.bytes[idx] : 0x20; // space
             let cls = classNames({
                 'hexview-ascii-char': true,
-                'hexview-ascii-char-cursor': this.props.cursor_pos === idx, 
+                'hexview-ascii-char-marked': this.props.marked.some((mark) => idx >= mark[0] && idx < mark[1]),
+                'hexview-ascii-char-cursor': this.props.cursor === idx, 
                 'hexview-ascii-char-hovered': this.props.hovered === idx
             });
             values.push(

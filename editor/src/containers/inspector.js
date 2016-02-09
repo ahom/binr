@@ -6,7 +6,7 @@ import InspectorView from '../components/inspector_view';
 const mapStateToProps = (state) => {
     return {
         data: state.hex.data,
-        cursor_pos: state.hex.cursor_pos
+        cursor: state.hex.cursor
     };
 }
 

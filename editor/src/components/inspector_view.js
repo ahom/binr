@@ -17,12 +17,11 @@ export default class InspectorView extends React.Component {
         super(props);
     }
     render() {
-        const {data, cursor_pos} = this.props;
-        let bytes = new Uint8Array();
-        if (data && cursor_pos >= data.start && cursor_pos < data.end) {
-            bytes = data.bytes.slice(cursor_pos - data.start, cursor_pos - data.start + 8); 
+        const {data, cursor} = this.props;
+        let dview = null;
+        if (data && cursor >= data.start && cursor < data.end) {
+            dview = new DataView(data.bytes.slice(cursor - data.start, cursor - data.start + 8).buffer); 
         }
-        let dview = new DataView(bytes.buffer);
         return <table
                 className="inspectorview">
             <thead>
@@ -33,7 +32,7 @@ export default class InspectorView extends React.Component {
                 </tr>
             </thead>
             <tbody>
-                {data && types.map((values, idx) => {
+                {dview && types.map((values, idx) => {
                     const [name, func] = values;
                     return <tr key={idx}>
                         <td className="inspector-name">{name}</td>

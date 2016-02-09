@@ -8,9 +8,6 @@ export default class TraceView extends React.Component {
             expanded: false
         };
     }
-    componentDidMount() {
-        this.props.fetch_trace_if_needed();
-    }
     render() {
         const {active_path, trace, path} = this.props;
         let cls = classNames({
@@ -21,7 +18,10 @@ export default class TraceView extends React.Component {
                 className="traceview">
             <span 
                 className={cls} 
-                onClick={(e) => this.props.set_active_trace(path)}
+                onClick={(e) => {
+                    this.props.set_active_trace(path);
+                    this.props.set_marked(trace.offsets);
+                }}
                 onDoubleClick={(e) => this.setState({expanded: !this.state.expanded})}>
                     {trace && trace.call || "Loading..."}
             </span>
@@ -32,6 +32,7 @@ export default class TraceView extends React.Component {
                         trace={child} 
                         path={[...path, idx]} 
                         set_active_trace={this.props.set_active_trace}
+                        set_marked={this.props.set_marked}
                         fetch_trace_if_needed={this.props.fetch_trace_if_needed}
                     />
                 </li>)}

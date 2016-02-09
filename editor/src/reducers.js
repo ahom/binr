@@ -1,6 +1,6 @@
 import {combineReducers} from 'redux';
 import {
-    HEX_VIEW_ROW_SET, HEX_CURSOR_POS_SET,
+    HEX_VIEW_ROW_SET, HEX_MARKED_SET, HEX_CURSOR_SET,
     HEX_DATA_FETCH_START, HEX_DATA_FETCH_END,
     METADATA_FETCH_START, METADATA_FETCH_END,
     TRACE_SET_ACTIVE, TRACE_FETCH_START, TRACE_FETCH_END
@@ -34,11 +34,14 @@ function hex_reducer(state = {
         bytes_per_row: 16,
         rows_per_page: 50
     },
-    cursor_pos: 0
+    cursor: 0,
+    marked: []
 }, action) {
     switch (action.type) {
-        case HEX_CURSOR_POS_SET:
-            return update(state, {cursor_pos: {$set: action.pos}}); 
+        case HEX_CURSOR_SET:
+            return update(state, {cursor: {$set: action.pos}}); 
+        case HEX_MARKED_SET:
+            return update(state, {marked: {$set: action.marked}}); 
         case HEX_VIEW_ROW_SET:
             return update(state, {view: {row: {$set: action.row}}}); 
         case HEX_DATA_FETCH_START:

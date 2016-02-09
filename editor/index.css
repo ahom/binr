@@ -38,13 +38,13 @@ span.hexview-byte {
     padding-right: 0.25em;
 }
 
-span.hexview-byte-hovered {
-    color: #1d1f21;
-    background-color: #c3ff00;
+span.hexview-byte-marked {
+    color: white;
+    background-color: #5f819d;
 }
-span.hexview-ascii-char-hovered {
-    color: #1d1f21;
-    background-color: #c3ff00;
+span.hexview-ascii-char-marked {
+    color: white;
+    background-color: #5f819d;
 }
 
 span.hexview-byte-cursor {
@@ -56,11 +56,11 @@ span.hexview-ascii-char-cursor {
     background-color: #de935f;
 }
 
-span.hexview-byte-marked {
-    color: white;
-    background-color: #5f819d;
+span.hexview-byte-hovered {
+    color: #1d1f21;
+    background-color: #c3ff00;
 }
-span.hexview-ascii-char-marked {
-    color: white;
-    background-color: #5f819d;
+span.hexview-ascii-char-hovered {
+    color: #1d1f21;
+    background-color: #c3ff00;
 }

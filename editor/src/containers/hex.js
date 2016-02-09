@@ -2,8 +2,7 @@ import React from 'react';
 import {connect} from 'react-redux';
 
 import {
-    hex_cursor_pos_set, hex_view_row_set,
-    fetch_metadata_if_needed, fetch_hex_data_if_needed
+    hex_cursor_set, hex_view_row_set
 } from '../actions';
 import HexView from '../components/hex_view';
 
@@ -11,16 +10,15 @@ const mapStateToProps = (state) => {
     return {
         data: state.hex.data,
         view: state.hex.view,
-        cursor_pos: state.hex.cursor_pos
+        cursor: state.hex.cursor,
+        marked: state.hex.marked
     };
 }
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        set_cursor_pos: (pos) => dispatch(hex_cursor_pos_set(pos)),
-        set_view_row: (row) => dispatch(hex_view_row_set(row)),
-        fetch_metadata_if_needed: () => dispatch(fetch_metadata_if_needed()),
-        fetch_hex_data_if_needed: () => dispatch(fetch_hex_data_if_needed())
+        set_cursor: (pos) => dispatch(hex_cursor_set(pos)),
+        set_view_row: (row) => dispatch(hex_view_row_set(row))
     };
 }
 

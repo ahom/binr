@@ -19,7 +19,7 @@
             bytes_per_row: XXX,
             rows_per_page: XXX
         },
-        cursor_pos: XXX
+        cursor: XXX
     },
     trace: {
         is_fetching: false,

@@ -64,12 +64,13 @@ class Trace:
             ) + ')'
         ).format(self=self)
 
+    def caller_str(self):
+        return '{self.func} in {self.filename} at line {self.lineno}'.format(self=self)
+
     def to_dict(self):
         return {
             'call': self.call_str(),
-            'filename': self.filename,
-            'func': self.func,
-            'lineno': self.lineno,
+            'caller': self.caller_str(),
             'offsets': self.offsets(),
             'result': json.dumps(self.result, indent=4, cls=DebugJsonEncoder),
             'children': list(map(lambda t: t.to_dict(), self.children))

@@ -2,7 +2,7 @@ import React from 'react';
 import {connect} from 'react-redux';
 
 import {
-    trace_set_active, fetch_trace_if_needed
+    hex_marked_set, trace_set_active
 } from '../actions';
 import TraceView from '../components/trace_view';
 
@@ -17,7 +17,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
     return {
         set_active_trace: (path) => dispatch(trace_set_active(path)),
-        fetch_trace_if_needed: () => dispatch(fetch_trace_if_needed())
+        set_marked: (marked) => dispatch(hex_marked_set(marked))
     };
 }
 
