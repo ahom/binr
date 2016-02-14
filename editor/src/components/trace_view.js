@@ -17,7 +17,7 @@ export default class TraceView extends React.Component {
         const is_in_active_path = path.length < active_path.length && path.every((el, idx) => el === active_path[idx]);
         const active_child = is_in_active_path ? active_path[path.length] : 0; 
         const expanded = this.state.expanded || is_in_active_path; 
-        const start_child = Math.max(0, active_child - 4);
+        const start_child = Math.max(0, active_child - 10);
         return <div
                 className="traceview">
             <span 
@@ -32,7 +32,7 @@ export default class TraceView extends React.Component {
                     {trace && `${path.length > 0 ? `${path[path.length - 1]}| ` : ''}${trace.call}` || "Loading..."}
             </span>
             {trace && trace.children && expanded && <ol className="traceview-children">
-                {trace.children.slice(start_child, active_child + 4).map((child, idx) => <li key={start_child + idx}>
+                {trace.children.slice(start_child, active_child + 10).map((child, idx) => <li key={start_child + idx}>
                     <TraceView 
                         active_path={active_path} 
                         trace={child} 

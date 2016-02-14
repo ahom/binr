@@ -16,9 +16,11 @@ def nested_type(ctx):
     return t.uint32(ctx), t.uint32(ctx)
 
 @binr.struct
-def complicated_type(ctx):
+def complicated_type(ctx, i, j):
     val = nested_type(ctx)
     ctx.skip(5)
+    ctx.skip(i)
+    ctx.skip(j)
     val2 = nested_type(ctx)
     val3 = t.uint64(ctx)
     return {

@@ -30,3 +30,4 @@ def trace(struct, source, *args, **kwargs):
     except Exception as e:
         raise TraceException(e, ctx.trace).with_traceback(sys.exc_info()[2])
     return ctx.trace 
+
