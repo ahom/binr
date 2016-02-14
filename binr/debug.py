@@ -40,12 +40,13 @@ class Server:
             traceback.print_exc()
             self._trace = e.trace
 
-    def trace(self, path=None):
-        return self._trace.to_dict()
+    def trace(self):
+        return None if self._trace is None else self._trace.to_dict()
 
     def data_infos(self):
         return {
-            'size': self._source.size()
+            'size': self._source.size(),
+            'name': self._source.name()
         }
 
     def data(self, offset, size):
@@ -71,11 +72,14 @@ if __name__ == '__main__':
     parsed_args = parser.parse_args()
 
     with open(parsed_args.filename, 'rb') as f:
-        source = FileSource(f)
+        source = FileSource(f, parsed_args.filename)
         
-        def struct_wrapper(*args, **kwargs):
+        def module_loader_wrapper():
             module = importlib.import_module(parsed_args.mod)
-            func = getattr(module, parsed_args.func)
-            return func(*args, **kwargs)
+            def struct_wrapper(*args, **kwargs):
+                module_r = importlib.reload(module)
+                func = getattr(module_r, parsed_args.func)
+                return func(*args, **kwargs)
+            return struct_wrapper
         
-        Server(struct_wrapper, source).run(host='localhost', port=8080)
+        Server(module_loader_wrapper(), source).run(host='localhost', port=8080)

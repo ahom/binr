@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import classNames from 'classnames';
 
 function get_offset(e) {
@@ -21,6 +22,20 @@ export default class HexView extends React.Component {
     }
     onWheel(e) {
         this.props.set_view_row(this.props.view.row + Math.floor(e.deltaY / 10.0));
+        e.preventDefault();
+    }
+    onCommandKeyDown(e) {
+        switch (e.keyCode) {
+            case 13: // execute command 'ENTER'
+                let command_dom_node = ReactDOM.findDOMNode(this.refs.command); 
+                this.props.exec_command(command_dom_node.value);
+                command_dom_node.value = '';
+                ReactDOM.findDOMNode(this.refs.view).focus(); 
+                break;
+            case 27: // move focus to view 'ESC'
+                ReactDOM.findDOMNode(this.refs.view).focus(); 
+                break;
+        }
     }
     onKeyDown(e) {
         let delta_bytes = 0;
@@ -42,8 +57,16 @@ export default class HexView extends React.Component {
                 break;
             case 34: // pagedown
                 delta_bytes += this.props.view.bytes_per_row * this.props.view.rows_per_page;
+                break;
+
+            case 191: // command start ':'
+                let command_dom_node = ReactDOM.findDOMNode(this.refs.command); 
+                command_dom_node.focus();
+                break;
         }
-        this.props.set_cursor(this.props.cursor + delta_bytes);
+        if (delta_bytes !== 0) {
+            this.props.set_cursor(this.props.cursor + delta_bytes);
+        }
     }
     onMouseDown(e) {
         let offset = get_offset(e);
@@ -52,9 +75,9 @@ export default class HexView extends React.Component {
         }
     }
     render() {
-        const {view, data, cursor, marked} = this.props;
+        const {view, data, cursor, marked, metadata} = this.props;
+        const address_size = ((view.row + view.rows_per_page) * view.bytes_per_row).toString(16).length;
         let rows = [];
-        let address_size = ((view.row + view.rows_per_page) * view.bytes_per_row).toString(16).length;
         let bytes = new Uint8Array();
         let page_marked = [];
         if (data) {
@@ -67,12 +90,12 @@ export default class HexView extends React.Component {
                 .filter((mark) => start < mark[1] && end > mark[0])
                 .map((mark) => [mark[0] - start, mark[1] - start]);
         }
-        let cursor_row = Math.floor(cursor / view.bytes_per_row);
+        const cursor_row = Math.floor(cursor / view.bytes_per_row);
         for (let idx = 0; idx < view.rows_per_page; idx++) { 
-            let cursor_col = (cursor_row === view.row + idx) ? cursor % view.bytes_per_row : null;
-            let start = idx * view.bytes_per_row;
-            let end = (idx + 1) * view.bytes_per_row;
-            let row_marked = page_marked
+            const cursor_col = (cursor_row === view.row + idx) ? cursor % view.bytes_per_row : null;
+            const start = idx * view.bytes_per_row;
+            const end = (idx + 1) * view.bytes_per_row;
+            const row_marked = page_marked
                 .filter((mark) => start < mark[1] && end > mark[0])
                 .map((mark) => [mark[0] - start, mark[1] - start]);
             rows.push(
@@ -87,14 +110,32 @@ export default class HexView extends React.Component {
                 />
             );
         }
-        return <ol
-                className="hexview"
-                tabIndex="1"
-                onMouseDown={this.onMouseDown.bind(this)}
-                onWheel={this.onWheel.bind(this)}
-                onKeyDown={this.onKeyDown.bind(this)}>
-            {rows}
-        </ol>;
+        return <div className="col">
+            <ol
+                    className="hexview"
+                    tabIndex="1"
+                    ref="view"
+                    onMouseDown={this.onMouseDown.bind(this)}
+                    onWheel={this.onWheel.bind(this)}
+                    onKeyDown={this.onKeyDown.bind(this)}>
+                {rows}
+            </ol>
+            <div className="hexview-status">
+                <span className="hexview-status-left">
+                    {metadata && metadata.name}
+                </span>
+                <span className="hexview-status-right">
+                    {cursor_row}
+                    {metadata && ` | ${Math.floor(cursor_row * 100 / Math.floor(metadata.size / view.bytes_per_row))}%`}
+                </span>
+            </div>
+            <input 
+                className="hexview-command" 
+                ref="command" 
+                type="text"
+                onKeyDown={this.onCommandKeyDown.bind(this)}
+            />
+        </div>;
     }
 }
 

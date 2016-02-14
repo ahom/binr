@@ -11,12 +11,16 @@ def coerce_to_source(data):
     return data
 
 class MemviewSource:
-    def __init__(self, mem):
+    def __init__(self, mem, name=None):
         self._mem = mem
         self._size = len(self._mem)
+        self._name = name
 
     def size(self):
         return self._size
+
+    def name(self):
+        return self._name
 
     def read(self, offset, size):
         result = self._mem[offset:offset + size]
@@ -26,13 +30,17 @@ class MemviewSource:
         return MemviewSource(self._mem)
 
 class FileSource:
-    def __init__(self, filelike):
+    def __init__(self, filelike, name=None):
         self._f = filelike
         self._size = os.fstat(self._f.fileno()).st_size
+        self._name = name
 
     def size(self):
         return self._size
     
+    def name(self):
+        return self._name
+
     def read(self, offset, size):
         self._f.seek(offset)
         result = memoryview(self._f.read(size))
@@ -42,12 +50,16 @@ class FileSource:
         return FileSource(self._f)
 
 class MmapSource:
-    def __init__(self, mmap):
+    def __init__(self, mmap, name=None):
         self._mmap = mmap
         self._size = self._mmap.size()
+        self._name = name
 
     def size(self):
         return self._size
+
+    def name(self):
+        return self._name
 
     def read(self, offset, size):
         result = memoryview(self._mmap[offset:offset + size])

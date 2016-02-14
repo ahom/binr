@@ -37,7 +37,7 @@ export function hex_cursor_set(pos) {
                 pos: new_pos
             });
             const {row, bytes_per_row, rows_per_page} = state.hex.view;
-            let new_pos_row = Math.floor(new_pos / bytes_per_row);
+            const new_pos_row = Math.floor(new_pos / bytes_per_row);
             if (new_pos_row < row) {
                 dispatch(hex_view_row_set(new_pos_row));
             } else if (new_pos_row >= row + rows_per_page) {
@@ -48,10 +48,21 @@ export function hex_cursor_set(pos) {
 }
 
 export function hex_marked_set(marked) {
-    return {
-        type: HEX_MARKED_SET,
-        marked: marked
-    }
+    return (dispatch, getState) => {
+        if (marked.length > 0) {
+            const {row, bytes_per_row, rows_per_page} = getState().hex.view;
+            const start = row * bytes_per_row;
+            const end = start + rows_per_page * bytes_per_row;
+            const start_offset = marked[0][0];
+            if (start > start_offset || end <= start_offset) {
+                dispatch(hex_view_row_set(Math.floor(start_offset / bytes_per_row)));
+            }
+        }
+        dispatch({
+            type: HEX_MARKED_SET,
+            marked: marked
+        });
+    };
 }
 
 export function hex_view_row_set(row) {
@@ -88,7 +99,7 @@ function receive_hex_data(start, end, data) {
 
 function fetch_hex_data(start) {
     return dispatch => {
-        let end = start + PAGE_SIZE;
+        const end = start + PAGE_SIZE;
         dispatch({
             type: HEX_DATA_FETCH_START,
             start: start
@@ -105,8 +116,8 @@ function should_fetch_hex_data(state) {
         return true;
     }
     const {row, bytes_per_row} = hex.view;
-    let pos = row * bytes_per_row;
-    let start = hex.fetch.ongoing ? hex.fetch.start : hex.data.start;
+    const pos = row * bytes_per_row;
+    const start = hex.fetch.ongoing ? hex.fetch.start : hex.data.start;
     return pos < start || pos >= start + PAGE_BOUNDARY;
 }
 
@@ -164,5 +175,26 @@ export function fetch_trace() {
         return fetch(`trace`)
             .then(req => req.json())
             .then(json => dispatch(receive_trace(json)));
+    }
+}
+
+export function command_exec(command_line) {
+    return (dispatch, getState) => {
+        const state = getState();
+        if (command_line.length > 0) {
+            if (command_line[0] === ':') {
+                const splitted_line = command_line.slice(1).split(' ');
+                switch (splitted_line[0]) {
+                    case 'goto':
+                        const val = splitted_line[1];
+                        let int_val = parseInt(val);
+                        if (val[0] === '+' || val[0] === '-') {
+                            int_val += state.hex.cursor;
+                        }
+                        dispatch(hex_cursor_set(int_val));
+                        break;
+                }
+            }
+        }
     }
 }

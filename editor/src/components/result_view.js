@@ -12,8 +12,8 @@ export default class ResultView extends React.Component {
         return <div
                 className="resultview">
             {trace && [
-                <span key={"caller"} className="resultview-caller">{trace.caller}</span>,
-                <span key={"result"} className="resultview-result">{trace.result}</span>
+                <div key={"caller"} className="resultview-caller">{trace.caller}</div>,
+                <div key={"result"} className="resultview-result">{trace.result}</div>
             ]}
         </div>;
     }

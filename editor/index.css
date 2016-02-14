@@ -1,8 +1,52 @@
+:root {
+    /* COLOR SCHEME */
+    --black:   #282a2e;
+    --red:     #a54242;
+    --green:   #8c9440;
+    --yellow:  #de935f;
+    --blue:    #5f819d;
+    --magenta: #85678f;
+    --cyan:    #5e8d87;
+    --gray:    #707880;
+
+    --lt-black:   #373b41;
+    --lt-red:     #cc6666;
+    --lt-green:   #b5bd68;
+    --lt-yellow:  #f0c674;
+    --lt-blue:    #81a2be;
+    --lt-magenta: #b294bb;
+    --lt-cyan:    #8abeb7;
+    --lt-gray:    #c5c8c6;
+
+    --bg:     #1d1f21;
+    --fg:     var(--lt-gray);
+    --cursor: #c3ff00;
+}
+
 html, body {
     font-family: monospace;
     white-space: pre;
-    background-color: #1d1f21;
-    color: #c5c8c6;
+    background-color: var(--bg);
+    color: var(--fg);
+    margin: 0;
+    border: 0;
+}
+
+div.col {
+    display: flex;
+    flex-flow: column nowrap;
+}
+
+div.row {
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+div.container-name {
+    text-transform: uppercase;
+    font-weight: bold;
+    font-family: sans-serif;
+    background-color: var(--lt-black);
 }
 
 ol.hexview {
@@ -18,10 +62,30 @@ li.hexview-row {
     line-height: 1em;
 }
 
+input.hexview-command {
+    background-color: var(--bg);
+    color: var(--fg);
+    margin: 0;
+    border: 0;
+    font-family: monospace;
+}
+
+div.hexview-status {
+    background-color: var(--black);
+}
+
+span.hexview-status-left {
+    float: left;
+}
+
+span.hexview-status-right {
+    float: right;
+}
+
 span.hexview-address {
     padding-left: 0.5em;
     padding-right: 0.5em;
-    background-color: #282a2e;
+    background-color: var(--black);
 }
 span.hexview-bytes {
     padding-left: 0.5em;
@@ -30,7 +94,7 @@ span.hexview-bytes {
 span.hexview-ascii {
     padding-left: 0.5em;
     padding-right: 0.5em;
-    background-color: #282a2e;
+    background-color: var(--black);
 }
 
 span.hexview-byte {
@@ -38,29 +102,38 @@ span.hexview-byte {
     padding-right: 0.25em;
 }
 
+span.hexview-byte-hovered {
+    color: white;
+    background-color: var(--gray);
+}
+span.hexview-ascii-char-hovered {
+    color: white;
+    background-color: var(--gray);
+}
+
 span.hexview-byte-marked {
     color: white;
-    background-color: #5f819d;
+    background-color: var(--blue);
 }
 span.hexview-ascii-char-marked {
     color: white;
-    background-color: #5f819d;
+    background-color: var(--blue);
+}
+span.traceview-trace-active {
+    color: white;
+    background-color: var(--blue);
 }
 
 span.hexview-byte-cursor {
-    color: white;
-    background-color: #de935f;
+    color: black;
+    background-color: var(--cursor);
 }
 span.hexview-ascii-char-cursor {
-    color: white;
-    background-color: #de935f;
+    color: black;
+    background-color: var(--cursor);
 }
 
-span.hexview-byte-hovered {
-    color: #1d1f21;
-    background-color: #c3ff00;
-}
-span.hexview-ascii-char-hovered {
-    color: #1d1f21;
-    background-color: #c3ff00;
+ol.traceview-children {
+    margin: 0;
+    list-style-type: none;
 }

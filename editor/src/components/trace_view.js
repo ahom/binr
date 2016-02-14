@@ -22,10 +22,12 @@ export default class TraceView extends React.Component {
                     this.props.set_active_trace(path);
                     this.props.set_marked(trace.offsets);
                 }}
-                onDoubleClick={(e) => this.setState({expanded: !this.state.expanded})}>
+                onDoubleClick={(e) => {
+                    this.setState({expanded: !this.state.expanded});
+                }}>
                     {trace && trace.call || "Loading..."}
             </span>
-            {trace && trace.children && this.state.expanded && <ol>
+            {trace && trace.children && this.state.expanded && <ol className="traceview-children">
                 {trace.children.map((child, idx) => <li key={idx}>
                     <TraceView 
                         active_path={active_path} 
