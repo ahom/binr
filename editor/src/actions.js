@@ -178,6 +178,19 @@ export function fetch_trace() {
     }
 }
 
+function traces_path(state) {
+    if (state.trace.root) {
+        let traces = [state.trace.root];
+        let trace = state.trace.root;
+        for (let idx of state.trace.active_trace) {
+            trace = trace.children[idx];
+            traces.push(trace);
+        }
+        return traces;
+    }
+    return null;
+}
+
 export function command_exec(command_line) {
     return (dispatch, getState) => {
         const state = getState();
@@ -185,13 +198,115 @@ export function command_exec(command_line) {
             if (command_line[0] === ':') {
                 const splitted_line = command_line.slice(1).split(' ');
                 switch (splitted_line[0]) {
+                    case 'g':
+                    case 'go':
                     case 'goto':
-                        const val = splitted_line[1];
-                        let int_val = parseInt(val);
-                        if (val[0] === '+' || val[0] === '-') {
-                            int_val += state.hex.cursor;
+                        {
+                            const val = splitted_line[1];
+                            let int_val = parseInt(val);
+                            if (val[0] === '+' || val[0] === '-') {
+                                int_val += state.hex.cursor;
+                            }
+                            dispatch(hex_cursor_set(int_val));
                         }
-                        dispatch(hex_cursor_set(int_val));
+                        break;
+
+                    case 'e':
+                    case 'end':
+                        if (state.metadata.data) {
+                            dispatch(hex_cursor_set(state.metadata.data.size - 1));
+                        }
+                        break;
+
+                    case 's':
+                    case 'start':
+                        dispatch(hex_cursor_set(0));
+                        break;
+
+                    case 'lt':
+                    case 'last-trace':
+                        if (state.trace.root) {
+                            let path = [];
+                            let trace = state.trace.root;
+                            while (trace.children.length > 0) {
+                                const last_child_id = trace.children.length - 1;
+                                trace = trace.children[last_child_id];
+                                path.push(last_child_id);
+                            }
+                            dispatch(trace_set_active(path));
+                            dispatch(hex_marked_set(trace.offsets));
+                        }
+                        break;
+
+                    case 'ft':
+                    case 'first-trace':
+                        if (state.trace.root) {
+                            dispatch(trace_set_active([]));
+                            dispatch(hex_marked_set(state.trace.root.offsets));
+                        }
+                        break;
+
+                    case 'sin':
+                    case 'step-in':
+                        {
+                            const steps = splitted_line[1] !== undefined ? parseInt(splitted_line[1]) : 1;
+                            const traces = traces_path(state);
+                            if (steps > 0 && traces !== null) {
+                                let active_trace = traces[traces.length - 1];
+                                let active_path = state.trace.active_trace;
+                                if (active_trace.children.length > 0) {
+                                    for (let idx = 0; idx < steps; idx++) {
+                                        if (active_trace.children.length === 0) {
+                                            break;
+                                        }
+                                        active_path = [...active_path, 0];
+                                        active_trace = active_trace.children[0];
+                                    }
+                                    dispatch(trace_set_active(active_path));
+                                    dispatch(hex_marked_set(active_trace.offsets));
+                                }
+                            }
+                        }
+                        break;
+
+                    case 'sov':
+                    case 'step-over':
+                        {
+                            const steps = splitted_line[1] !== undefined ? parseInt(splitted_line[1]) : 1;
+                            const traces = traces_path(state);
+                            if (traces !== null && traces.length > 1) {
+                                const active_trace = traces[traces.length - 1];
+                                const parent_trace = traces[traces.length - 2];
+                                const current_child_pos = state.trace.active_trace[state.trace.active_trace.length - 1];
+                                const new_child_pos = Math.max(
+                                    Math.min(
+                                        current_child_pos + steps,
+                                        parent_trace.children.length - 1
+                                    ),
+                                    0
+                                );
+                                if (new_child_pos != current_child_pos) {
+                                    dispatch(trace_set_active([...state.trace.active_trace.slice(0, state.trace.active_trace.length - 1), new_child_pos]));
+                                    dispatch(hex_marked_set(parent_trace.children[new_child_pos].offsets));
+                                }
+                            }
+                        }
+                        break;
+
+                    case 'sou':
+                    case 'step-out':
+                        {
+                            let steps = splitted_line[1] !== undefined ? parseInt(splitted_line[1]) : 1;
+                            const traces = traces_path(state);
+                            if (steps > 0 && traces !== null && traces.length > 1) {
+                                steps = Math.min(
+                                    traces.length - 1,
+                                    steps
+                                );
+                                dispatch(trace_set_active(state.trace.active_trace.slice(0, traces.length - steps - 1)));
+                                dispatch(hex_marked_set(traces[traces.length - 1 - steps].offsets));
+                            }
+                        }
                         break;
                 }
             }

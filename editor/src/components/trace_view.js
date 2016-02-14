@@ -14,6 +14,10 @@ export default class TraceView extends React.Component {
             'traceview-trace': true,
             'traceview-trace-active': active_path.length === path.length && active_path.every((el, idx) => el === path[idx])
         });
+        const is_in_active_path = path.length < active_path.length && path.every((el, idx) => el === active_path[idx]);
+        const active_child = is_in_active_path ? active_path[path.length] : 0; 
+        const expanded = this.state.expanded || is_in_active_path; 
+        const start_child = Math.max(0, active_child - 4);
         return <div
                 className="traceview">
             <span 
@@ -25,17 +29,16 @@ export default class TraceView extends React.Component {
                 onDoubleClick={(e) => {
                     this.setState({expanded: !this.state.expanded});
                 }}>
-                    {trace && trace.call || "Loading..."}
+                    {trace && `${path.length > 0 ? `${path[path.length - 1]}| ` : ''}${trace.call}` || "Loading..."}
             </span>
-            {trace && trace.children && this.state.expanded && <ol className="traceview-children">
-                {trace.children.map((child, idx) => <li key={idx}>
+            {trace && trace.children && expanded && <ol className="traceview-children">
+                {trace.children.slice(start_child, active_child + 4).map((child, idx) => <li key={start_child + idx}>
                     <TraceView 
                         active_path={active_path} 
                         trace={child} 
-                        path={[...path, idx]} 
+                        path={[...path, start_child + idx]} 
                         set_active_trace={this.props.set_active_trace}
                         set_marked={this.props.set_marked}
-                        fetch_trace_if_needed={this.props.fetch_trace_if_needed}
                     />
                 </li>)}
             </ol>}
