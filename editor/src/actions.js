@@ -4,7 +4,6 @@ const PAGE_SIZE = 4096;
 const PAGE_BOUNDARY = 2048;
 
 export const HEX_VIEW_ROW_SET = 'HEX_VIEW_ROW_SET';
-export const HEX_MARKED_SET = 'HEX_MARKED_SET';
 export const HEX_CURSOR_SET = 'HEX_CURSOR_SET';
 
 export const HEX_DATA_FETCH_START = 'HEX_DATA_FETCH_START';
@@ -44,24 +43,6 @@ export function hex_cursor_set(pos) {
                 dispatch(hex_view_row_set(new_pos_row - rows_per_page + 1));
             }
         }
-    };
-}
-
-export function hex_marked_set(marked) {
-    return (dispatch, getState) => {
-        if (marked.length > 0) {
-            const {row, bytes_per_row, rows_per_page} = getState().hex.view;
-            const start = row * bytes_per_row;
-            const end = start + rows_per_page * bytes_per_row;
-            const start_offset = marked[0][0];
-            if (start > start_offset || end <= start_offset) {
-                dispatch(hex_view_row_set(Math.floor(start_offset / bytes_per_row)));
-            }
-        }
-        dispatch({
-            type: HEX_MARKED_SET,
-            marked: marked
-        });
     };
 }
 
@@ -153,17 +134,35 @@ export function fetch_metadata() {
     }
 }
 
-export function trace_set_active(path) {
-    return {
-        type: TRACE_SET_ACTIVE,
-        path: path
+export function trace_set_active(trace) {
+    return (dispatch, getState) => {
+        if (trace.offsets.length > 0) {
+            const {row, bytes_per_row, rows_per_page} = getState().hex.view;
+            const start = row * bytes_per_row;
+            const end = start + rows_per_page * bytes_per_row;
+            const start_offset = trace.offsets[0][0];
+            if (start > start_offset || end <= start_offset) {
+                dispatch(hex_view_row_set(Math.floor(start_offset / bytes_per_row)));
+            }
+        }
+        dispatch({
+            type: TRACE_SET_ACTIVE,
+            trace: trace
+        });
     };
+}
+
+function enrich_trace(trace, path=[], parent=null) {
+    trace.parent = parent;
+    trace.path = path.slice();
+    trace.children.forEach((child, idx) => enrich_trace(child, [...path, idx], trace));
+    return trace;
 }
 
 function receive_trace(json) {
     return {
         type: TRACE_FETCH_END,
-        data: json
+        data: enrich_trace(json)
     };
 }
 
@@ -178,17 +177,110 @@ export function fetch_trace() {
     }
 }
 
-function traces_path(state) {
-    if (state.trace.root) {
-        let traces = [state.trace.root];
-        let trace = state.trace.root;
-        for (let idx of state.trace.active_trace) {
-            trace = trace.children[idx];
-            traces.push(trace);
+export function set_last_trace_active() {
+    return (dispath, getState) => {
+        const root = getState().trace.root;
+        if (root) {
+            let trace = root;
+            while (trace.children.length > 0) {
+                const last_child_id = trace.children.length - 1;
+                trace = trace.children[last_child_id];
+            }
+            dispatch(trace_set_active(trace));
         }
-        return traces;
-    }
-    return null;
+    };
+}
+
+export function set_first_trace_active() {
+    return (dispath, getState) => {
+        const root = getState().trace.root;
+        if (root) {
+            dispatch(trace_set_active(root));
+        }
+    };
+}
+
+export function step_in(steps) {
+    return (dispatch, getState) => {
+        let trace = getState().trace.active_trace;
+        if (trace) {
+            for (let idx = 0; idx < steps; idx++) {
+                if (trace.children.length > 0) {
+                    trace = trace.children[0];
+                } else {
+                    let current_trace = trace;
+                    while (current_trace) {
+                        const parent = current_trace.parent;
+                        if (!parent) {
+                            break;
+                        }
+                        const current_child = current_trace.path[current_trace.path.length - 1];
+                        if (parent.children.length > current_child + 1) {
+                            // step over/out
+                            trace = parent.children[current_child + 1];
+                            break;
+                        }
+                        current_trace = parent;
+                    }
+                }
+            }
+            dispatch(trace_set_active(trace));
+        }
+    };
+}
+
+export function step_over(steps) {
+    return (dispatch, getState) => {
+        let trace = getState().trace.active_trace;
+        if (trace) {
+            for (let idx = 0; idx < steps; idx++) {
+                let current_trace = trace;
+                while (current_trace) {
+                    const parent = current_trace.parent;
+                    if (!parent) {
+                        break;
+                    }
+                    const current_child = current_trace.path[current_trace.path.length - 1];
+                    if (parent.children.length > current_child + 1) {
+                        // step over/out
+                        trace = parent.children[current_child + 1];
+                        break;
+                    }
+                    current_trace = parent;
+                }
+            }
+            dispatch(trace_set_active(trace));
+        }
+    };
+}
+
+export function step_out(steps) {
+    return (dispatch, getState) => {
+        let trace = getState().trace.active_trace;
+        if (trace) {
+            for (let idx = 0; idx < steps; idx++) {
+                let current_trace = trace;
+                while (current_trace) {
+                    let parent = current_trace.parent;
+                    if (!parent) {
+                        break;
+                    }
+                    parent = parent.parent;
+                    if (!parent) {
+                        break;
+                    }
+                    const current_child = current_trace.parent.path[current_trace.parent.path.length - 1];
+                    if (parent.children.length > current_child + 1) {
+                        // step out
+                        trace = parent.children[current_child + 1];
+                        break;
+                    }
+                    current_trace = parent;
+                }
+            }
+            dispatch(trace_set_active(trace));
+        }
+    };
 }
 
 export function command_exec(command_line) {
@@ -225,88 +317,27 @@ export function command_exec(command_line) {
 
                     case 'lt':
                     case 'last-trace':
-                        if (state.trace.root) {
-                            let path = [];
-                            let trace = state.trace.root;
-                            while (trace.children.length > 0) {
-                                const last_child_id = trace.children.length - 1;
-                                trace = trace.children[last_child_id];
-                                path.push(last_child_id);
-                            }
-                            dispatch(trace_set_active(path));
-                            dispatch(hex_marked_set(trace.offsets));
-                        }
+                        dispatch(set_last_trace_active());
                         break;
 
                     case 'ft':
                     case 'first-trace':
-                        if (state.trace.root) {
-                            dispatch(trace_set_active([]));
-                            dispatch(hex_marked_set(state.trace.root.offsets));
-                        }
+                        dispatch(set_first_trace_active());
                         break;
 
                     case 'sin':
                     case 'step-in':
-                        {
-                            const steps = splitted_line[1] !== undefined ? parseInt(splitted_line[1]) : 1;
-                            const traces = traces_path(state);
-                            if (steps > 0 && traces !== null) {
-                                let active_trace = traces[traces.length - 1];
-                                let active_path = state.trace.active_trace;
-                                if (active_trace.children.length > 0) {
-                                    for (let idx = 0; idx < steps; idx++) {
-                                        if (active_trace.children.length === 0) {
-                                            break;
-                                        }
-                                        active_path = [...active_path, 0];
-                                        active_trace = active_trace.children[0];
-                                    }
-                                    dispatch(trace_set_active(active_path));
-                                    dispatch(hex_marked_set(active_trace.offsets));
-                                }
-                            }
-                        }
+                        dispatch(step_in(splitted_line[1] !== undefined ? parseInt(splitted_line[1]) : 1));
                         break;
 
                     case 'sov':
                     case 'step-over':
-                        {
-                            const steps = splitted_line[1] !== undefined ? parseInt(splitted_line[1]) : 1;
-                            const traces = traces_path(state);
-                            if (traces !== null && traces.length > 1) {
-                                const active_trace = traces[traces.length - 1];
-                                const parent_trace = traces[traces.length - 2];
-                                const current_child_pos = state.trace.active_trace[state.trace.active_trace.length - 1];
-                                const new_child_pos = Math.max(
-                                    Math.min(
-                                        current_child_pos + steps,
-                                        parent_trace.children.length - 1
-                                    ),
-                                    0
-                                );
-                                if (new_child_pos != current_child_pos) {
-                                    dispatch(trace_set_active([...state.trace.active_trace.slice(0, state.trace.active_trace.length - 1), new_child_pos]));
-                                    dispatch(hex_marked_set(parent_trace.children[new_child_pos].offsets));
-                                }
-                            }
-                        }
+                        dispatch(step_over(splitted_line[1] !== undefined ? parseInt(splitted_line[1]) : 1));
                         break;
 
                     case 'sou':
                     case 'step-out':
-                        {
-                            let steps = splitted_line[1] !== undefined ? parseInt(splitted_line[1]) : 1;
-                            const traces = traces_path(state);
-                            if (steps > 0 && traces !== null && traces.length > 1) {
-                                steps = Math.min(
-                                    traces.length - 1,
-                                    steps
-                                );
-                                dispatch(trace_set_active(state.trace.active_trace.slice(0, traces.length - steps - 1)));
-                                dispatch(hex_marked_set(traces[traces.length - 1 - steps].offsets));
-                            }
-                        }
+                        dispatch(step_out(splitted_line[1] !== undefined ? parseInt(splitted_line[1]) : 1));
                         break;
                 }
             }

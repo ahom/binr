@@ -45,22 +45,42 @@ export default class HexView extends React.Component {
         let delta_bytes = 0;
         switch (e.key) {
             case "ArrowLeft":
-                delta_bytes -= 1;
+                if (e.shiftKey) {
+                    this.props.step.out();
+                } else {
+                    delta_bytes -= 1;
+                }
                 break;
             case "ArrowUp":
                 delta_bytes -= this.props.view.bytes_per_row;
                 break;
             case "ArrowRight":
-                delta_bytes += 1;
+                if (e.shiftKey) {
+                    this.props.step.in();
+                } else {
+                    delta_bytes += 1;
+                }
                 break;
             case "ArrowDown": 
-                delta_bytes += this.props.view.bytes_per_row;
+                if (e.shiftKey) {
+                    this.props.step.over();
+                } else {
+                    delta_bytes += this.props.view.bytes_per_row;
+                }
                 break;
             case "PageUp":
                 delta_bytes -= this.props.view.bytes_per_row * this.props.view.rows_per_page;
                 break;
             case "PageDown":
                 delta_bytes += this.props.view.bytes_per_row * this.props.view.rows_per_page;
+                break;
+            case "s":
+                this.props.set_cursor(0);
+                break;
+            case "e":
+                if (this.props.metadata) {
+                    this.props.set_cursor(this.props.metadata.size - 1);
+                }
                 break;
 
             case ":":
@@ -78,7 +98,7 @@ export default class HexView extends React.Component {
         }
     }
     render() {
-        const {view, data, cursor, marked, metadata} = this.props;
+        const {view, data, cursor, active_trace, metadata} = this.props;
         const address_size = ((view.row + view.rows_per_page) * view.bytes_per_row).toString(16).length;
         let rows = [];
         let bytes = new Uint8Array();
@@ -89,9 +109,11 @@ export default class HexView extends React.Component {
             if (data.start <= start && data.end >= end) {
                 bytes = data.bytes.subarray(start - data.start, end - data.start);
             }
-            page_marked = marked
-                .filter((mark) => start < mark[1] && end > mark[0])
-                .map((mark) => [mark[0] - start, mark[1] - start]);
+            if (active_trace) {
+                page_marked = active_trace.offsets
+                    .filter((mark) => start < mark[1] && end > mark[0])
+                    .map((mark) => [mark[0] - start, mark[1] - start]);
+            }
         }
         const cursor_row = Math.floor(cursor / view.bytes_per_row);
         for (let idx = 0; idx < view.rows_per_page; idx++) { 

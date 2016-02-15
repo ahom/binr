@@ -8,16 +8,14 @@ import TraceView from '../components/trace_view';
 
 const mapStateToProps = (state) => {
     return {
-        active_path: state.trace.active_trace,
-        path: [],
+        active_trace: state.trace.active_trace,
         trace: state.trace.root
     };
 }
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        set_active_trace: (path) => dispatch(trace_set_active(path)),
-        set_marked: (marked) => dispatch(hex_marked_set(marked))
+        set_active_trace: (trace) => dispatch(trace_set_active(trace)),
     };
 }
 

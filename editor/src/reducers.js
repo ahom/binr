@@ -34,14 +34,11 @@ function hex_reducer(state = {
         bytes_per_row: 16,
         rows_per_page: 50
     },
-    cursor: 0,
-    marked: []
+    cursor: 0
 }, action) {
     switch (action.type) {
         case HEX_CURSOR_SET:
             return update(state, {cursor: {$set: action.pos}}); 
-        case HEX_MARKED_SET:
-            return update(state, {marked: {$set: action.marked}}); 
         case HEX_VIEW_ROW_SET:
             return update(state, {view: {row: {$set: action.row}}}); 
         case HEX_DATA_FETCH_START:
@@ -80,11 +77,11 @@ function hex_reducer(state = {
 function trace_reducer(state = {
     is_fetching: false,
     root: null,
-    active_trace: []
+    active_trace: null 
 }, action) {
     switch (action.type) {
         case TRACE_SET_ACTIVE:
-            return update(state, {active_trace: {$set: action.path}});
+            return update(state, {active_trace: {$set: action.trace}});
         case TRACE_FETCH_START:
             return update(state, {is_fetching: {$set: true}});
         case TRACE_FETCH_END:
