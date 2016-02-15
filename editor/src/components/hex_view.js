@@ -20,48 +20,51 @@ export default class HexView extends React.Component {
     constructor(props: Props) {
         super(props);
     }
+    componentDidMount() {
+        // sets the focus at start on the hex view
+        ReactDOM.findDOMNode(this.refs.view).focus(); 
+    }
     onWheel(e) {
         this.props.set_view_row(this.props.view.row + Math.floor(e.deltaY / 10.0));
         e.preventDefault();
     }
     onCommandKeyDown(e) {
-        switch (e.keyCode) {
-            case 13: // execute command 'ENTER'
+        switch (e.key) {
+            case "Enter":
                 let command_dom_node = ReactDOM.findDOMNode(this.refs.command); 
                 this.props.exec_command(command_dom_node.value);
                 command_dom_node.value = '';
                 ReactDOM.findDOMNode(this.refs.view).focus(); 
                 break;
-            case 27: // move focus to view 'ESC'
+            case "Escape":
                 ReactDOM.findDOMNode(this.refs.view).focus(); 
                 break;
         }
     }
     onKeyDown(e) {
         let delta_bytes = 0;
-        switch (e.keyCode) {
-            case 37: // left
+        switch (e.key) {
+            case "ArrowLeft":
                 delta_bytes -= 1;
                 break;
-            case 38: // top
+            case "ArrowUp":
                 delta_bytes -= this.props.view.bytes_per_row;
                 break;
-            case 39: // right
+            case "ArrowRight":
                 delta_bytes += 1;
                 break;
-            case 40: // bottom
+            case "ArrowDown": 
                 delta_bytes += this.props.view.bytes_per_row;
                 break;
-            case 33: // pageup
+            case "PageUp":
                 delta_bytes -= this.props.view.bytes_per_row * this.props.view.rows_per_page;
                 break;
-            case 34: // pagedown
+            case "PageDown":
                 delta_bytes += this.props.view.bytes_per_row * this.props.view.rows_per_page;
                 break;
 
-            case 191: // command start ':'
-                let command_dom_node = ReactDOM.findDOMNode(this.refs.command); 
-                command_dom_node.focus();
+            case ":":
+                ReactDOM.findDOMNode(this.refs.command).focus(); 
                 break;
         }
         if (delta_bytes !== 0) {
