@@ -154,8 +154,8 @@ export default class HexView extends React.Component {
                     {metadata && metadata.name}
                 </span>
                 <span className="hexview-status-right">
-                    {cursor_row}
-                    {metadata && ` | ${Math.floor(cursor_row * 100 / Math.floor(metadata.size / view.bytes_per_row))}%`}
+                    {cursor}
+                    {metadata && ` | ${Math.floor(cursor * 100 / (metadata.size - 1))}%`}
                 </span>
             </div>
             <input 
