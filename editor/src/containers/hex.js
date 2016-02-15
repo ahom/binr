@@ -3,7 +3,7 @@ import {connect} from 'react-redux';
 
 import {
     hex_cursor_set, hex_view_row_set, command_exec,
-    step_in, step_over, step_out
+    trace_step_in, trace_step_over, trace_step_out
 } from '../actions';
 import HexView from '../components/hex_view';
 
@@ -23,9 +23,9 @@ const mapDispatchToProps = (dispatch) => {
         set_view_row: (row) => dispatch(hex_view_row_set(row)),
         exec_command: (command_line) => dispatch(command_exec(command_line)),
         step: {
-            in: () => dispatch(step_in(1)),
-            over: () => dispatch(step_over(1)),
-            out: () => dispatch(step_out(1))
+            in: () => dispatch(trace_step_in(1)),
+            over: (step) => dispatch(trace_step_over(step)),
+            out: () => dispatch(trace_step_out(1))
         }
     };
 }

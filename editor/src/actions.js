@@ -173,7 +173,10 @@ export function fetch_trace() {
         });
         return fetch(`trace`)
             .then(req => req.json())
-            .then(json => dispatch(receive_trace(json)));
+            .then(json => {
+                dispatch(receive_trace(json));
+                dispatch(trace_set_active(json));
+            });
     }
 }
 
@@ -200,83 +203,97 @@ export function set_first_trace_active() {
     };
 }
 
-export function step_in(steps) {
+function step_out(trace) {
+    const parent = trace.parent;
+    if (parent) {
+        return step_over(parent);
+    }
+    return null;
+}
+
+function step_over(trace) {
+    const parent = trace.parent;
+    if (parent) {
+        const child_id = trace.path[trace.path.length - 1];
+        if (parent.children.length > child_id + 1) {
+            return parent.children[child_id + 1];
+        }
+    }
+    return step_out(trace);
+}
+
+function reverse_step_over(trace) {
+    const parent = trace.parent;
+    if (parent) {
+        const child_id = trace.path[trace.path.length - 1];
+        if (child_id === 0) {
+            return parent;
+        } else {
+            return parent.children[child_id - 1];
+        }
+    }
+    return null;
+}
+
+function step_in(trace) {
+    if (trace.children.length > 0) {
+        return trace.children[0];
+    }
+    return step_over(trace);
+}
+
+export function trace_step_in(steps) {
     return (dispatch, getState) => {
         let trace = getState().trace.active_trace;
         if (trace) {
+            let prev_trace = trace;
             for (let idx = 0; idx < steps; idx++) {
-                if (trace.children.length > 0) {
-                    trace = trace.children[0];
+                trace = step_in(prev_trace);
+                if (!trace) {
+                    trace = prev_trace;
+                    break;
+                }
+                prev_trace = trace;
+            }
+            dispatch(trace_set_active(trace));
+        }
+    };
+}
+
+export function trace_step_over(steps) {
+    return (dispatch, getState) => {
+        let trace = getState().trace.active_trace;
+        if (trace) {
+            let prev_trace = trace;
+            for (let idx = 0; idx < Math.abs(steps); idx++) {
+                if (steps > 0) {
+                    trace = step_over(prev_trace);
                 } else {
-                    let current_trace = trace;
-                    while (current_trace) {
-                        const parent = current_trace.parent;
-                        if (!parent) {
-                            break;
-                        }
-                        const current_child = current_trace.path[current_trace.path.length - 1];
-                        if (parent.children.length > current_child + 1) {
-                            // step over/out
-                            trace = parent.children[current_child + 1];
-                            break;
-                        }
-                        current_trace = parent;
-                    }
+                    trace = reverse_step_over(prev_trace);
                 }
+                if (!trace) {
+                    trace = prev_trace;
+                    break;
+                }
+                prev_trace = trace;
             }
             dispatch(trace_set_active(trace));
         }
     };
 }
 
-export function step_over(steps) {
+export function trace_step_out(steps) {
     return (dispatch, getState) => {
         let trace = getState().trace.active_trace;
         if (trace) {
+            let prev_trace = trace;
             for (let idx = 0; idx < steps; idx++) {
-                let current_trace = trace;
-                while (current_trace) {
-                    const parent = current_trace.parent;
-                    if (!parent) {
-                        break;
-                    }
-                    const current_child = current_trace.path[current_trace.path.length - 1];
-                    if (parent.children.length > current_child + 1) {
-                        // step over/out
-                        trace = parent.children[current_child + 1];
-                        break;
-                    }
-                    current_trace = parent;
+                trace = step_out(prev_trace);
+                if (!trace) {
+                    trace = prev_trace;
+                    break;
                 }
-            }
-            dispatch(trace_set_active(trace));
-        }
-    };
-}
-
-export function step_out(steps) {
-    return (dispatch, getState) => {
-        let trace = getState().trace.active_trace;
-        if (trace) {
-            for (let idx = 0; idx < steps; idx++) {
-                let current_trace = trace;
-                while (current_trace) {
-                    let parent = current_trace.parent;
-                    if (!parent) {
-                        break;
-                    }
-                    parent = parent.parent;
-                    if (!parent) {
-                        break;
-                    }
-                    const current_child = current_trace.parent.path[current_trace.parent.path.length - 1];
-                    if (parent.children.length > current_child + 1) {
-                        // step out
-                        trace = parent.children[current_child + 1];
-                        break;
-                    }
-                    current_trace = parent;
-                }
+                prev_trace = trace;
             }
             dispatch(trace_set_active(trace));
         }
@@ -327,17 +344,17 @@ export function command_exec(command_line) {
 
                     case 'sin':
                     case 'step-in':
-                        dispatch(step_in(splitted_line[1] !== undefined ? parseInt(splitted_line[1]) : 1));
+                        dispatch(trace_step_in(splitted_line[1] !== undefined ? parseInt(splitted_line[1]) : 1));
                         break;
 
                     case 'sov':
                     case 'step-over':
-                        dispatch(step_over(splitted_line[1] !== undefined ? parseInt(splitted_line[1]) : 1));
+                        dispatch(trace_step_over(splitted_line[1] !== undefined ? parseInt(splitted_line[1]) : 1));
                         break;
 
                     case 'sou':
                     case 'step-out':
-                        dispatch(step_out(splitted_line[1] !== undefined ? parseInt(splitted_line[1]) : 1));
+                        dispatch(trace_step_out(splitted_line[1] !== undefined ? parseInt(splitted_line[1]) : 1));
                         break;
                 }
             }

@@ -52,7 +52,11 @@ export default class HexView extends React.Component {
                 }
                 break;
             case "ArrowUp":
-                delta_bytes -= this.props.view.bytes_per_row;
+                if (e.shiftKey) {
+                    this.props.step.over(-1);
+                } else {
+                    delta_bytes -= this.props.view.bytes_per_row;
+                }
                 break;
             case "ArrowRight":
                 if (e.shiftKey) {
@@ -63,7 +67,7 @@ export default class HexView extends React.Component {
                 break;
             case "ArrowDown": 
                 if (e.shiftKey) {
-                    this.props.step.over();
+                    this.props.step.over(1);
                 } else {
                     delta_bytes += this.props.view.bytes_per_row;
                 }

@@ -28,7 +28,7 @@ export default class TraceView extends React.Component {
                 onDoubleClick={(e) => {
                     this.setState({expanded: !this.state.expanded});
                 }}>
-                    {trace && `${trace.path.length > 0 ? `${trace.path[trace.path.length - 1]}| ` : ''}${trace.call}` || "Loading..."}
+                    {trace && `${(expanded || trace.children.length === 0) ? '-' : '+'} ${trace.path.length > 0 ? `${trace.path[trace.path.length - 1]}| ` : ''}${trace.call}` || "Loading..."}
             </span>
             {trace && trace.children && expanded && <ol className="traceview-children">
                 {trace.children.slice(start_child, active_child + 10).map((child, idx) => <li key={start_child + idx}>
