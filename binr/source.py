@@ -27,7 +27,7 @@ class MemviewSource:
         return result
      
     def clone(self):
-        return MemviewSource(self._mem)
+        return MemviewSource(self._mem, self._name)
 
 class FileSource:
     def __init__(self, filelike, name=None):
@@ -47,7 +47,7 @@ class FileSource:
         return result
      
     def clone(self):
-        return FileSource(self._f)
+        return FileSource(self._f, self._name)
 
 class MmapSource:
     def __init__(self, mmap, name=None):
@@ -66,5 +66,5 @@ class MmapSource:
         return result
      
     def clone(self):
-        return MmapSource(self._f)
+        return MmapSource(self._mmap, self._name)
 

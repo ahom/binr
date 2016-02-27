@@ -1,7 +1,7 @@
 import sys
 
-from binr.context import Context
-from binr.source import coerce_to_source
+from .context import Context
+from .source import coerce_to_source
 
 def struct(func):
     def closure(ctx, *args,  **kwargs):

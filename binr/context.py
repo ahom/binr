@@ -1,6 +1,6 @@
 import inspect
 
-from binr.trace import Trace
+from .trace import Trace
 
 class Context:
     def __init__(self, source, traces_enabled=False, offset=0):

@@ -13,10 +13,10 @@ for int_type, letter in zip(range(4), ["b", "h", "i", "q"]):
     bits = byte_count * 8
     base_name = "int{}".format(bits)
     for little_endian in [True, False]:
-        endian_suffix = "le" if little_endian else "be"
-        define_base_type("s{}{}".format(base_name, endian_suffix), letter, little_endian)
-        define_base_type("u{}{}".format(base_name, endian_suffix), letter.upper(), little_endian)
-        define_base_type("{}{}".format(base_name, endian_suffix), letter, little_endian)
+        endian_prefix = "le" if little_endian else "be"
+        define_base_type("{}s{}".format(endian_prefix, base_name), letter, little_endian)
+        define_base_type("{}u{}".format(endian_prefix, base_name), letter.upper(), little_endian)
+        define_base_type("{}{}".format(endian_prefix, base_name), letter, little_endian)
     define_base_type("s{}".format(base_name), letter)
     define_base_type("u{}".format(base_name), letter.upper())
     define_base_type(base_name, letter)
@@ -26,8 +26,8 @@ for float_type, letter in zip(range(2), ["f", "d"]):
     bits = byte_count * 8
     base_name = "float{}".format(bits)
     for little_endian in [True, False]:
-        endian_suffix = "le" if little_endian else "be"
-        define_base_type("{}{}".format(base_name, endian_suffix), letter, little_endian)
+        endian_prefix = "le" if little_endian else "be"
+        define_base_type("{}{}".format(endian_prefix, base_name), letter, little_endian)
     define_base_type(base_name, letter)
 
 @binr.struct
@@ -50,3 +50,12 @@ def cstring(ctx, encoding="utf-8"):
         char = ctx.read(1)[0]
         result.append(char)
     return result[:-1].decode(encoding)
+
+@binr.struct
+def cstringraw(ctx):
+    result = bytearray()
+    char = 0xFF 
+    while char != 0x00:
+        char = ctx.read(1)[0]
+        result.append(char)
+    return result[:-1]

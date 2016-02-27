@@ -15,13 +15,13 @@ STATIC_FILES_PATH = os.path.join(
 from bottle import Bottle, static_file, redirect
 
 import binr
-from binr.source import FileSource
+from .source import FileSource, coerce_to_source
 
 class Server:
     def __init__(self, struct, source):
         self.bottle = Bottle()
         self._struct = struct
-        self._source = source
+        self._source = coerce_to_source(source)
         self._trace = None
 
         self.bottle.route('/trace', ['GET'], self.trace)
@@ -77,6 +77,19 @@ def parse_arg(args):
     else:
         return None, None
 
+def launch_server(module_name, func_name, source, *struct_args, **struct_kwargs):
+    source = coerce_to_source(source)
+    module = importlib.import_module(module_name)
+        
+    def module_loader_wrapper():
+        def struct_wrapper(*args):
+            module_r = importlib.reload(module)
+            func = getattr(module_r, func_name)
+            return func(*args, *struct_args, **struct_kwargs)
+        return struct_wrapper
+    
+    Server(module_loader_wrapper(), source).run(host='localhost', port=8080)
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--filename', '-n', action='store', required=True,
@@ -85,8 +98,6 @@ if __name__ == '__main__':
                         help='module for the struct to parse')
     parser.add_argument('--func', '-f', action='store', required=True,
                         help='function for the struct to parse')
-    parser.add_argument('--debug', '-d', action='store_true', default=False,
-                        help='launch the debug editor')
     parsed_args, unparsed_args = parser.parse_known_args()
 
     struct_args = []
@@ -100,17 +111,4 @@ if __name__ == '__main__':
 
     with open(parsed_args.filename, 'rb') as f:
         source = FileSource(f, parsed_args.filename)
-        module = importlib.import_module(parsed_args.mod)
-        
-        if parsed_args.debug:
-            def module_loader_wrapper():
-                def struct_wrapper(*args):
-                    module_r = importlib.reload(module)
-                    func = getattr(module_r, parsed_args.func)
-                    return func(*args, *struct_args, **struct_kwargs)
-                return struct_wrapper
-            
-            Server(module_loader_wrapper(), source).run(host='localhost', port=8080)
-        else:
-            func = getattr(module, parsed_args.func)
-            print(binr.read(func, source, *struct_args, **struct_kwargs))
+        launch_server(parsed_args.mod, parsed_args.func, source, *struct_args, **struct_kwargs)

@@ -1,15 +1,21 @@
-import json
 from itertools import chain
 
-class DebugJsonEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, tuple) and hasattr(o, '_asdict'): # for namedtuple
-            return o._asdict()
-        else:
-            try:
-                return super().default(o)
-            except Exception as e:
-                return str(o) # for all the rest, cast to str
+def to_dict(o):
+    if isinstance(o, dict):
+        return {
+            key: to_dict(value) for key, value in o.items()
+        }
+    elif isinstance(o, list):
+        return [to_dict(value) for value in o]
+    elif isinstance(o, tuple):
+        # special case for namedtuple
+        if hasattr(o, '_asdict'):
+            return to_dict(o._asdict())
+        return to_dict(list(o))
+    elif isinstance(o, int) or isinstance(o, float) or isinstance(o, bool) or o is None:
+        return o
+    else:
+        return str(o)
 
 class Trace:
     def __init__(self, parent, offset, name, filename, func, lineno, *args, **kwargs):
@@ -72,6 +78,6 @@ class Trace:
             'call': self.call_str(),
             'caller': self.caller_str(),
             'offsets': self.offsets(),
-            'result': json.dumps(self.result, indent=4, cls=DebugJsonEncoder),
+            'result': to_dict(self.result),
             'children': list(map(lambda t: t.to_dict(), self.children))
         }
