@@ -71,3 +71,49 @@ def array(ctx, child_struct, count, *args, **kwargs):
     def unroll(c, item_count):
         return [child_struct(c, *args, **kwargs) for i in range(item_count)]
     return binr.call_struct(ctx, unroll, 'array<{}>'.format(child_struct.__name__), count, *args, **kwargs)
+
+def enumerate_array(ctx, child_struct, count, *args, **kwargs):
+    def unroll(c, item_count):
+        return [child_struct(c, i, *args, **kwargs) for i in range(item_count)]
+    return binr.call_struct(ctx, unroll, 'enumerate_array<{}>'.format(child_struct.__name__), count, *args, **kwargs)
+
+def decompress_half(val):
+    s = int((val >> 15) & 0x00000001)    # sign
+    e = int((val >> 10) & 0x0000001f)    # exponent
+    f = int(val & 0x000003ff)            # fraction
+
+    if e == 0:
+        if f == 0:
+            return int(s << 31)
+        else:
+            while not (f & 0x00000400):
+                f = f << 1
+                e -= 1
+            e += 1
+            f &= ~0x00000400
+    elif e == 31:
+        if f == 0:
+            return int((s << 31) | 0x7f800000)
+        else:
+            return int((s << 31) | 0x7f800000 | (f << 13))
+
+    e = e + (127 -15)
+    f = f << 13
+    return int((s << 31) | (e << 23) | f)
+
+def half_to_float(ctx):
+    val = struct.unpack("{}H".format("<" if little_endian else ">", ctx.read(2)))[0]
+    val = decompress_half(val)
+    return struct.unpack("<f", struct.pack("<I", val))[0]
+
+@binr.struct
+def float16(ctx):
+    return half_to_float(ctx, True)
+
+@binr.struct
+def lefloat16(ctx):
+    return half_to_float(ctx, True)
+
+@binr.struct
+def befloat16(ctx):
+    return half_to_float(ctx, False)
