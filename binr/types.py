@@ -4,9 +4,16 @@ import binr
 
 def define_base_type(name, letter, little_endian = True):
     struct_def = struct.Struct("{}{}".format("<" if little_endian else ">", letter))
-    def unpack(ctx):
-        return struct_def.unpack(ctx.read(struct_def.size))[0] 
-    globals()[name] = lambda ctx, *args, **kwargs: binr.call_struct(ctx, unpack, name, *args, **kwargs)
+    def closure(ctx, *args, **kwargs):
+        return binr.call_struct(
+            ctx, 
+            lambda c: struct_def.unpack(c.read(struct_def.size))[0], 
+            name, 
+            *args, 
+            **kwargs
+        )
+    closure.__name__ = name
+    globals()[name] = closure
 
 for int_type, letter in zip(range(4), ["b", "h", "i", "q"]):
     byte_count = pow(2, int_type) 
@@ -59,3 +66,8 @@ def cstringraw(ctx):
         char = ctx.read(1)[0]
         result.append(char)
     return result[:-1]
+
+def array(ctx, child_struct, count, *args, **kwargs):
+    def unroll(c, item_count):
+        return [child_struct(c, *args, **kwargs) for i in range(item_count)]
+    return binr.call_struct(ctx, unroll, 'array<{}>'.format(child_struct.__name__), count, *args, **kwargs)

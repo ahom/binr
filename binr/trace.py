@@ -1,10 +1,12 @@
+import json
 from itertools import chain
+from collections import OrderedDict
 
 def to_dict(o):
-    if isinstance(o, dict):
-        return {
-            key: to_dict(value) for key, value in o.items()
-        }
+    if isinstance(o, dict) or isinstance(o, OrderedDict):
+        return OrderedDict([
+            (key, to_dict(value)) for key, value in o.items()
+        ])
     elif isinstance(o, list):
         return [to_dict(value) for value in o]
     elif isinstance(o, tuple):

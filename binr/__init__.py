@@ -6,6 +6,7 @@ from .source import coerce_to_source
 def struct(func):
     def closure(ctx, *args,  **kwargs):
         return call_struct(ctx, func, func.__name__, *args, **kwargs)
+    closure.__name__ = func.__name__
     return closure
 
 def call_struct(ctx, func, name, *args, **kwargs):
