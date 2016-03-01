@@ -68,13 +68,13 @@ def cstringraw(ctx):
     return result[:-1]
 
 def array(ctx, child_struct, count, *args, **kwargs):
-    def unroll(c, item_count):
-        return [child_struct(c, *args, **kwargs) for i in range(item_count)]
+    def unroll(c, item_count, *unroll_args, **unroll_kwargs):
+        return [child_struct(c, *unroll_args, **unroll_kwargs) for i in range(item_count)]
     return binr.call_struct(ctx, unroll, 'array<{}>'.format(child_struct.__name__), count, *args, **kwargs)
 
 def enumerate_array(ctx, child_struct, count, *args, **kwargs):
-    def unroll(c, item_count):
-        return [child_struct(c, i, *args, **kwargs) for i in range(item_count)]
+    def unroll(c, item_count, *unroll_args, **unroll_kwargs):
+        return [child_struct(c, i, *unroll_args, **unroll_kwargs) for i in range(item_count)]
     return binr.call_struct(ctx, unroll, 'enumerate_array<{}>'.format(child_struct.__name__), count, *args, **kwargs)
 
 def decompress_half(val):
@@ -101,8 +101,8 @@ def decompress_half(val):
     f = f << 13
     return int((s << 31) | (e << 23) | f)
 
-def half_to_float(ctx):
-    val = struct.unpack("{}H".format("<" if little_endian else ">", ctx.read(2)))[0]
+def half_to_float(ctx, little_endian):
+    val = struct.unpack("{}H".format("<" if little_endian else ">"), ctx.read(2))[0]
     val = decompress_half(val)
     return struct.unpack("<f", struct.pack("<I", val))[0]
 
