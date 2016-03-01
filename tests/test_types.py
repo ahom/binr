@@ -31,7 +31,7 @@ def test_int_types():
     for typ in [t.beuint32]:
         assert binr.read(typ, struct.pack('>I', 0xFFFFFFFF)) == 0xFFFFFFFF
 
-    for typ in [t.int64, t.sint64, t.leint64le, t.lesint64]:
+    for typ in [t.int64, t.sint64, t.leint64, t.lesint64]:
         assert binr.read(typ, struct.pack('<q', -0x7FFFFFFFFFFFFFFF)) == -0x7FFFFFFFFFFFFFFF
     for typ in [t.uint64, t.leuint64]:
         assert binr.read(typ, struct.pack('<Q', 0xFFFFFFFFFFFFFFFF)) == 0xFFFFFFFFFFFFFFFF
